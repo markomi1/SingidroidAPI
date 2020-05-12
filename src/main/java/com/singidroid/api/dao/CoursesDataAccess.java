@@ -24,7 +24,26 @@ public class CoursesDataAccess {
         List<Object> query = jdbcTemplate.query(sql, (resultSet, i) -> {
             String id = resultSet.getString("id");
             String title = resultSet.getString("title");
-            return new Object[]{id, title};
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("id", id);
+            map.put("title", title);
+            return map;
+        });
+        if (query.isEmpty()) {
+            query.add(0, "Not Found");
+        }
+        return query;
+    }
+
+    public List<Object> getyears() {
+        String sql = "SELECT years.year,years.year_title FROM years";
+        List<Object> query = jdbcTemplate.query(sql, (resultSet, i) -> {
+            String year = resultSet.getString("year");
+            String year_title = resultSet.getString("year_title");
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("id", year);
+            map.put("title", year_title);
+            return map;
         });
         if (query.isEmpty()) {
             query.add(0, "Not Found");
@@ -62,7 +81,7 @@ public class CoursesDataAccess {
         return query;
     }
 
-    public List<Object> getCoursesForGivenYearsAndFaculty(String faks, Integer year, String course) {
+    public List<Object> getCoursesForGivenYearAndFaculty(String faks, Integer year) {
         String sql = "SELECT faculties.id," +
                 "years_id," +
                 "courses_id," +
@@ -73,8 +92,17 @@ public class CoursesDataAccess {
         Object[] arguments = {faks, year};
         List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
             String id = resultSet.getString("id");
+            int years_id = resultSet.getInt("years_id");
+            int courses_id = resultSet.getInt("courses_id");
+            String elementid = resultSet.getString("elementid");
             String title = resultSet.getString("title");
-            return new Object[]{id, title};
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("id", id);
+            map.put("years_id", String.valueOf(years_id));
+            map.put("courses_id", String.valueOf(courses_id));
+            map.put("elementid", elementid);
+            map.put("title", title);
+            return map;
         });
         if (query.isEmpty()) {
             query.add(0, "Not Found");

@@ -31,11 +31,15 @@ public class SingidroidService {
         return coursesDataAccess.getYearsForSelectedFaculty(faks, year);
     }
 
-    public List<Object> getCoursesForGivenYearsAndFaculty(String faks, Integer year, String course) {
-        return coursesDataAccess.getCoursesForGivenYearsAndFaculty(faks, year, course);
+    public List<Object> getCoursesForGivenYearAndFaculty(String faks, Integer year) {
+        return coursesDataAccess.getCoursesForGivenYearAndFaculty(faks, year);
     }
 
     public List<Object> getSelectedFaculty(String faks) {
         return coursesDataAccess.getSelectedFaculty(faks);
     }
+
+    public List<Object> getYearsForFaculty() {
+        return coursesDataAccess.getyears();
+    } //For all faculties it's 4 years max, so no need to pass anything, there will never be < 4 years
 }

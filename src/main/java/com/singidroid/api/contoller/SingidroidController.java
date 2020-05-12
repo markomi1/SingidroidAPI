@@ -58,37 +58,49 @@ public class SingidroidController { //TODO HTTPS is disabled for now as it need 
     //Figured out the DB thing, now to figure out how to pass arguments etc.
     //Caching is also disabled from now on, not needed.
     //I also don't need the repo things as i can use plain old java Object to make JSONs out of.
+    //Don't need repo for jackshit but will leave it as i'm too lazy to clean it up, it works, somehow.
 
 
     //TODO Implement some more security in the API itself, add news parsing and that should be it.
 
-    @GetMapping("/appInit/")
+    @GetMapping("/appInit/getYears")
+    public List<Object> getYears() { //Returns years 1-4
 
-    public List<Object> getCustomSQL(@RequestParam(name = "faks", required = false, defaultValue = "") String faks, //String
-                                     @RequestParam(name = "course", required = false, defaultValue = "") String courseid, // String
-                                     @RequestParam(name = "year", required = false, defaultValue = "0") Integer year) { //Int 1-4
+        return singidroidService.getYearsForFaculty();
+    }
+
+    @GetMapping("/appInit/getCourse")
+    public List<Object> getCourses(@RequestParam(name = "faks", required = false, defaultValue = "") String faks,
+                                   @RequestParam(name = "year", required = false, defaultValue = "0") Integer year) {
         int faksLen = faks.length();
-        int courseLen = courseid.length();
-
-
-        if (!(faksLen >= 3 && faksLen <= 12)) {
-            List<Object> errorObject = new ArrayList<Object>();
-            errorObject.add("ERROR: No Faculty ID lesser than 3 or greater than 12 exists");
+        if (faks.isEmpty() || year == 0) {
+            List<Object> errorObject = new ArrayList<Object>(); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
+            errorObject.add("ERROR: faks or year isn't set, please set and  try again");
             return errorObject;
         }
-        if (!(year >= 1 && year <= 4)) {
+
+        if (!(faksLen >= 3 && faksLen <= 12) && faks.isEmpty()) { //Check to see if the faks var is over 3 or less than 12 and isn't empty
+            List<Object> errorObject = new ArrayList<Object>(); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
+            errorObject.add("ERROR: No Faculty ID lesser than 3 or greater than 12 exists");
+            return errorObject;
+        } else if (!(year >= 1 && year <= 4) && year != 0) {
             List<Object> errorObject = new ArrayList<Object>();
             errorObject.add("ERROR: Year is only from 1-4");
             return errorObject;
         }
 
+        return singidroidService.getCoursesForGivenYearAndFaculty(faks, year);
+    }
 
-        if (year == 0) { //Should just return all faculties
-            return singidroidService.getSelectedFaculty(faks);
-        } else if (year != 0 && courseid.isEmpty()) { // Should only return years that belong to the specified faculty
-            return singidroidService.getYearsForFaculty(faks, year);
-        } else if (!courseid.isEmpty()) { // Should return only available courses that belong to the specified year of selected faculty
-            return singidroidService.getCoursesForGivenYearsAndFaculty(faks, year, courseid);
+    @GetMapping("/appInit/getFaculties") //Used to fetch Faculty,Year and Course data, returns JSON Object
+    public List<Object> getAppInit(@RequestParam(name = "faks", required = false, defaultValue = "") String faks) { //Int 1-4
+        int faksLen = faks.length();
+
+        //Inverted state
+        if (!(faksLen >= 3 && faksLen <= 12) && !faks.isEmpty()) { //Check to see if the faks var is over 3 or less than 12 and isn't empty
+            List<Object> errorObject = new ArrayList<Object>(); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
+            errorObject.add("ERROR: No Faculty ID lesser than 3 or greater than 12 exists");
+            return errorObject;
         } else {
             return singidroidService.getAllFaculties();
         }
