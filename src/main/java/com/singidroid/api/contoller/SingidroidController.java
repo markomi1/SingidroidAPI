@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class SingidroidController { //TODO HTTPS is disabled for now as it need to be implemented on Android.
+public class SingidroidController {  //TODO HTTPS is disabled for now as it need to be implemented on Android.
 
     private final SingidroidService singidroidService;
     private final RestTemplate restTemplate;
@@ -27,21 +27,20 @@ public class SingidroidController { //TODO HTTPS is disabled for now as it need 
         this.singidroidService = singidroidService;
         this.restTemplate = restTemplate.build();
     }
-
-
+    
     @GetMapping("news/getNews") //TODO Change later to POST Mapping not GET Mapping
     public List<Object> getNews(@RequestParam(name = "newsSourceCategories", required = false, defaultValue = "") String newsSourceCategories,
                                 @RequestParam(name = "page", required = false, defaultValue = "0") Integer page) throws URISyntaxException, JSONException, IOException { //This should return NewsJSON for given sources, or given faculty Acronyms
         List<Object> errorObject = new ArrayList<Object>(); //Error Object
         if (newsSourceCategories.isEmpty()) { //Just normal input "sanitization"
-            errorObject.add("ERROR: news Category cannot be empty");
-            //return errorObject;
+            errorObject.add("ERROR: newsSourceCategories cannot be empty");
+            return errorObject;
         } else if (newsSourceCategories.length() > 12) {
-            errorObject.add("ERROR: over 12 char limit boi");
-            //return errorObject;
+            errorObject.add("ERROR: newsSourceCategories is over 12 char limit boi");
+            return errorObject;
         } else if (page > 50 || page < 0) {
             errorObject.add("ERROR: over 50 pages or under 0, yea that's the limit");
-            //return errorObject;
+            return errorObject;
         }
 
         //Hard coded limit of 15 posts per page, maybe i'll add an optional request header to increase the limit
