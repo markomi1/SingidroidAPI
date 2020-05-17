@@ -2,16 +2,17 @@ package com.singidroid.api.contoller;
 
 
 import com.singidroid.api.service.SingidroidService;
-import okhttp3.*;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,37 +20,43 @@ import java.util.List;
 public class SingidroidController { //TODO HTTPS is disabled for now as it need to be implemented on Android.
 
     private final SingidroidService singidroidService;
+    private final RestTemplate restTemplate;
 
     @Autowired
-    public SingidroidController(SingidroidService singidroidService) {
+    public SingidroidController(SingidroidService singidroidService, RestTemplateBuilder restTemplate) {
         this.singidroidService = singidroidService;
+        this.restTemplate = restTemplate.build();
     }
 
 
-    @GetMapping("/getFaculties")
-    @Cacheable("response2")
-    public String getFaculties() throws IOException, JSONException {
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
-        MediaType mediaType = MediaType.parse("text/plain");
-        RequestBody body = RequestBody.create(mediaType, "");
-        Request request = new Request.Builder()
-                .url("https://api.singidunum.rs/key:SD03-A1K8-1033-0001-3355/module:system/method:getFaculties")
-                .method("POST", body)
-                .addHeader("Cache-Control", "max-age=2592000, public")
-                .build();
-        Response response = null;
-        try {
-            response = client.newCall(request).execute();
-        } catch (IOException e) {
-            e.printStackTrace();
+    @GetMapping("news/getNews") //TODO Change later to POST Mapping not GET Mapping
+    public List<Object> getNews(@RequestParam(name = "newsSourceCategories", required = false, defaultValue = "") String newsSourceCategories,
+                                @RequestParam(name = "page", required = false, defaultValue = "0") Integer page) throws URISyntaxException, JSONException, IOException { //This should return NewsJSON for given sources, or given faculty Acronyms
+        List<Object> errorObject = new ArrayList<Object>(); //Error Object
+        if (newsSourceCategories.isEmpty()) { //Just normal input "sanitization"
+            errorObject.add("ERROR: news Category cannot be empty");
+            //return errorObject;
+        } else if (newsSourceCategories.length() > 12) {
+            errorObject.add("ERROR: over 12 char limit boi");
+            //return errorObject;
+        } else if (page > 50 || page < 0) {
+            errorObject.add("ERROR: over 50 pages or under 0, yea that's the limit");
+            //return errorObject;
         }
 
-        String jsonData = response.body().string();
-        JSONArray jArray = new JSONArray(jsonData);
-        String test = jArray.toString();
+        //Hard coded limit of 15 posts per page
+        String url = "http://api.singidunum.rs/key:SD03-A1K8-1033-0001-3355/module:posts/method:getCategoryPosts/categories:" + newsSourceCategories + "/page:" + page + "/count:15/";
 
-        return test;
+
+        return singidroidService.getNews(url); //All the ugly stuff happens in that method
+    }
+
+
+    @GetMapping("news/getSources")
+    @Cacheable("response1") //This doesn't change at all, so i can set it to be cached so i don't hit the DB that often
+    public List<Object> getNewsRepo() { //Returns news sources
+
+        return singidroidService.getNewsRepo();
     }
 
 
@@ -64,12 +71,14 @@ public class SingidroidController { //TODO HTTPS is disabled for now as it need 
     //TODO Implement some more security in the API itself, add news parsing and that should be it.
 
     @GetMapping("/appInit/getYears")
+    @Cacheable("response2") //This doesn't change at all, so i can set it to be cached so i don't hit the DB that often
     public List<Object> getYears() { //Returns years 1-4
 
         return singidroidService.getYearsForFaculty();
     }
 
-    @GetMapping("/appInit/getCourse")
+
+    @GetMapping("/appInit/getCourse") //Used  to return courses for given faksID and year
     public List<Object> getCourses(@RequestParam(name = "faks", required = false, defaultValue = "") String faks,
                                    @RequestParam(name = "year", required = false, defaultValue = "0") Integer year) {
         int faksLen = faks.length();

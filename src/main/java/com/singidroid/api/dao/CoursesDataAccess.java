@@ -139,4 +139,31 @@ public class CoursesDataAccess {
         }
         return query;
     }
+
+    public List<Object> getNewsSources() {
+        String sql = "SELECT faculty_id," +
+                "faculty_title," +
+                "faculty_short," +
+                "categories," + " " +
+                "text_background_hex" +
+                " FROM \"newsSources\"";
+        List<Object> query = jdbcTemplate.query(sql, (resultSet, i) -> {
+            int faculty_id = resultSet.getInt("faculty_id");
+            String faculty_title = resultSet.getString("faculty_title");
+            String faculty_short = resultSet.getString("faculty_short");
+            String categories = resultSet.getString("categories");
+            String color = resultSet.getString("text_background_hex");
+            Map<String, String> map = new LinkedHashMap<>();
+            map.put("faculty_id", String.valueOf(faculty_id));
+            map.put("faculty_title", faculty_title);
+            map.put("faculty_short", faculty_short);
+            map.put("categories", categories);
+            map.put("color", color);
+            return map;//new Object[] {id,years_id,courses_id,elementid,title};
+        });
+        if (query.isEmpty()) {
+            query.add(0, "Not Found");
+        }
+        return query;
+    }
 }
