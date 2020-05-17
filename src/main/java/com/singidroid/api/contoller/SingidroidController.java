@@ -44,11 +44,11 @@ public class SingidroidController { //TODO HTTPS is disabled for now as it need 
             //return errorObject;
         }
 
-        //Hard coded limit of 15 posts per page
+        //Hard coded limit of 15 posts per page, maybe i'll add an optional request header to increase the limit
         String url = "http://api.singidunum.rs/key:SD03-A1K8-1033-0001-3355/module:posts/method:getCategoryPosts/categories:" + newsSourceCategories + "/page:" + page + "/count:15/";
 
 
-        return singidroidService.getNews(url); //All the ugly stuff happens in that method
+        return singidroidService.getNews(url); //All the ugly stuff happens in that method call
     }
 
 

@@ -28,9 +28,7 @@ public class SingidroidService {
     }
 
 
-    public void testService() {
 
-    }
 
 
     public List<Object> getAllFaculties() {
@@ -65,19 +63,20 @@ public class SingidroidService {
 
         OkHttpClient client = new OkHttpClient().newBuilder()
                 .build();
-        okhttp3.MediaType mediaType = MediaType.parse("text/plain");
+        okhttp3.MediaType mediaType = MediaType.parse("text/plain"); //they send JSON like a plain text for some reason ?????
         RequestBody body = RequestBody.create(mediaType, "");
         Request request = new Request.Builder()
                 .url(url)
-                .method("POST", body)
-                .addHeader("Cache-Control", "max-age=2592000, public")
+                .method("POST", body) //Using post as it doesn't have the GET request limits(char limit)
+                .addHeader("Cache-Control", "max-age=2592000, public") //Just but just in case it has some sort of caching
                 .build();
         Response response = null;
         try {
-            response = client.newCall(request).execute();
+            response = client.newCall(request).execute(); //It has a tendency to fail sometimes, so yea...
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         Gson gson = new Gson(); //Google Gson, papa bless
         String jsonData = response.body().string(); //Saving response as string here
 
@@ -100,9 +99,9 @@ public class SingidroidService {
             newsModel.setPost_images(image_extractor(t.get("post_content").getAsString())); //Post images
             newsModel.setPlain_text(t.get("plain_text").getAsString()); //Post text
 
-            newsModel.setPost_permalink("http://singidunum.ac.rs/news/" + t.get("post_permalink").getAsString());
+            newsModel.setPost_permalink("http://singidunum.ac.rs/news/" + t.get("post_permalink").getAsString()); //Post perm link, used in the app to open the post in the browser
 
-            news.add(newsModel);
+            news.add(newsModel); //Pushing the newly created News onto the ArrayList
         }
 
         return news;
@@ -123,8 +122,8 @@ public class SingidroidService {
             }
         }
         if (matched == null) {
-            return null;
+            return null; //Some post don't have pics at all, so in that case we just return null
         }
-        return matched.toString();
+        return matched.toString(); //
     }
 }
