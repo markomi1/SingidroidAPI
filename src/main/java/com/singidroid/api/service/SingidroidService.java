@@ -93,7 +93,7 @@ public class SingidroidService {
             newsModel.setPost_description(t.get("post_description").getAsString() + "..."); //Short post description
             newsModel.setPost_date(t.get("post_datetime").getAsString()); //When the post was made
 
-            newsModel.setCover_image_path(t.get("image_pre_path").getAsString() + "/thumb/" + t.get("image_path").getAsString()); //Cover image path, half of it that is
+            newsModel.setCover_image_path("https://repository.singidunum.ac.rs/images/" + t.get("image_pre_path").getAsString() + "/thumb/" + t.get("image_path").getAsString()); //Cover image path, half of it that is
 
 
             newsModel.setPost_images(image_extractor(t.get("post_content").getAsString())); //Post images

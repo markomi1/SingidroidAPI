@@ -101,7 +101,7 @@ public class SingidroidController {  //TODO HTTPS is disabled for now as it need
     }
 
     @GetMapping("/appInit/getFaculties") //Used to fetch Faculty,Year and Course data, returns JSON Object
-    public List<Object> getAppInit(@RequestParam(name = "faks", required = false, defaultValue = "") String faks) { //Int 1-4
+    public List<Object> getFaks(@RequestParam(name = "faks", required = false, defaultValue = "") String faks) { //Int 1-4
         int faksLen = faks.length();
 
         //Inverted state
