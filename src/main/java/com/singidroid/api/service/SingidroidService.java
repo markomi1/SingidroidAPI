@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.singidroid.api.dao.CoursesDataAccess;
+import com.singidroid.api.model.CourseSubjects;
 import com.singidroid.api.model.News;
 import okhttp3.*;
 import org.json.JSONException;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,7 +99,7 @@ public class SingidroidService {
 
 
             newsModel.setPost_images(image_extractor(t.get("post_content").getAsString())); //Post images
-            newsModel.setPlain_text(t.get("plain_text").getAsString()); //Post text
+            newsModel.setPlain_text(t.get("plain_text").getAsString().replaceAll("\\s*\\.$", "")); //Post text
 
             newsModel.setPost_permalink("http://singidunum.ac.rs/news/" + t.get("post_permalink").getAsString()); //Post perm link, used in the app to open the post in the browser
 
@@ -109,7 +111,7 @@ public class SingidroidService {
 
 
     public String image_extractor(String content) { //Used to extract https://repository.singidunum.ac.rs image links, ignores everything else
-        //TODO make it capture repository but ignore img.youtube etc, but in another method make it ignore repository but capture everything else
+        // make it capture repository but ignore img.youtube etc, but in another method make it ignore repository but capture everything else
         final String regex = "<img[^>]+src=\\\"(https:\\/\\/repository[^\">]+)\\\"";
         final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
         final Matcher matcher = pattern.matcher(content);
@@ -126,4 +128,37 @@ public class SingidroidService {
         }
         return matched.toString(); //
     }
+
+    public List<Object> getCourseSubjects(Integer courseid) throws IOException {
+
+        String url = "http://predmet.singidunum.ac.rs/lib/ajax/getnavbranch.php";
+
+        List<CourseSubjects> news = new ArrayList<>(); //Where all the posts are stored at
+
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded; charset=UTF-8,application/x-www-form-urlencoded");
+        RequestBody body = RequestBody.create(mediaType, "elementid=expandable_branch_10_" + courseid + "&id=" + courseid + "&type=10");
+        Request request = new Request.Builder()
+                .url(url)
+                .method("POST", body)
+                .addHeader("Content-Type", "application/x-www-form-urlencoded")
+                .addHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                .build();
+        Response response = null;
+        try {
+            response = client.newCall(request).execute(); //It has a tendency to fail sometimes, so yea...
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Gson gson = new Gson(); //Google Gson, papa bless
+        String jsonData = new String(response.body().string().getBytes("UTF-8")); //Saving response as string here
+
+
+        CourseSubjects course = gson.fromJson(jsonData, CourseSubjects.class);
+
+        return Collections.singletonList(course.getChildren());
+    }
+
 }

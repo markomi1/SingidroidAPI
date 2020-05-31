@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Hello</title>
+    <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <link rel="stylesheet" th:href="@{/css.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/bootstrap-material-design.min.css}">
+
+    <link href="css.css" rel="stylesheet">
+
+</head>
+<body>
+<div class="container">
+
+    <div th:attr="onclick = |rippleEffect();|" th:each="subject, stats : ${subjects}">
+        <div class="card">
+            <div class="ripple">
+                <div class="card-body">
+                    <h4 class="card-title" th:attr="onclick=|window.location='${subject.courseid}'|"
+                        th:text="${subject.courseName}">Card title</h4>
+                    <ul class="card-text">
+                        <li class="list-group-item" th:each="teacher, stats : ${subject.title}"
+                            th:text="${teacher}"></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script th:src="@{/js/jquery-3.2.1.slim.min.js}"></script>
+<script th:src="@{/js/popper.js}"></script>
+<script th:src="@{/js/bootstrap-material-design.js}"></script>
+<script th:src="@{/js/js.js}"></script>
+<script>$(document).ready(function() { $('body').bootstrapMaterialDesign(); });</script>
+</body>
+</html>

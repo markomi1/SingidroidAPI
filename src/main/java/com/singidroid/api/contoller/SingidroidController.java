@@ -3,6 +3,9 @@ package com.singidroid.api.contoller;
 
 import com.singidroid.api.service.SingidroidService;
 import org.json.JSONException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class SingidroidController {  //TODO HTTPS is disabled for now as it need to be implemented on Android.
+public class SingidroidController{  //TODO HTTPS is disabled for now as it need to be implemented on Android.
 
     private final SingidroidService singidroidService;
     private final RestTemplate restTemplate;
@@ -27,7 +30,40 @@ public class SingidroidController {  //TODO HTTPS is disabled for now as it need
         this.singidroidService = singidroidService;
         this.restTemplate = restTemplate.build();
     }
-    
+
+    @GetMapping("/test")
+    public List<Object> test() throws IOException {
+        String blogUrl = "http://predmet.singidunum.ac.rs/course/index.php?categoryid=120";
+        Document doc = Jsoup.connect(blogUrl).get();
+        Elements container = doc.getElementsByClass("coursebox");
+
+        //parseNews(doc);
+
+        int coursesLenght = container.size();
+
+
+        List<Object> oo = new ArrayList<>();
+        for (int i = 0; i < coursesLenght; i++) {
+            //oo.add(getSubjects(container, i));
+        }
+
+        return oo;
+    }
+
+
+    @GetMapping("courses/getSubjects")
+    public List<Object> getSubjectsForGivenCourse(@RequestParam(name = "courseId", required = false, defaultValue = "") Integer courseId) throws IOException {
+
+        List<Object> errorObject = new ArrayList<Object>(); //Error Object
+        if (courseId <= 0 || courseId >= 200) {
+            errorObject.add("ERROR: courseId can't be 0 or greater than 200");
+            return errorObject;
+        }
+
+        return singidroidService.getCourseSubjects(courseId); //Given courseId(example 120) it returns list of given courseId subjects, if not found it returns [ null ]
+    }
+
+
     @GetMapping("news/getNews") //TODO Change later to POST Mapping not GET Mapping
     public List<Object> getNews(@RequestParam(name = "newsSourceCategories", required = false, defaultValue = "") String newsSourceCategories,
                                 @RequestParam(name = "page", required = false, defaultValue = "0") Integer page) throws URISyntaxException, JSONException, IOException { //This should return NewsJSON for given sources, or given faculty Acronyms
@@ -38,7 +74,7 @@ public class SingidroidController {  //TODO HTTPS is disabled for now as it need
         } else if (newsSourceCategories.length() > 12) {
             errorObject.add("ERROR: newsSourceCategories is over 12 char limit boi");
             return errorObject;
-        } else if (page > 50 || page < 0) {
+        } else if (page >= 50 || page < 0) {
             errorObject.add("ERROR: over 50 pages or under 0, yea that's the limit");
             return errorObject;
         }
