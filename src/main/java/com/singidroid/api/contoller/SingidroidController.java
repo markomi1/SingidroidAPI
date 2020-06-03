@@ -3,9 +3,6 @@ package com.singidroid.api.contoller;
 
 import com.singidroid.api.service.SingidroidService;
 import org.json.JSONException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
@@ -29,25 +26,6 @@ public class SingidroidController{  //TODO HTTPS is disabled for now as it need 
     public SingidroidController(SingidroidService singidroidService, RestTemplateBuilder restTemplate) {
         this.singidroidService = singidroidService;
         this.restTemplate = restTemplate.build();
-    }
-
-    @GetMapping("/test")
-    public List<Object> test() throws IOException {
-        String blogUrl = "http://predmet.singidunum.ac.rs/course/index.php?categoryid=120";
-        Document doc = Jsoup.connect(blogUrl).get();
-        Elements container = doc.getElementsByClass("coursebox");
-
-        //parseNews(doc);
-
-        int coursesLenght = container.size();
-
-
-        List<Object> oo = new ArrayList<>();
-        for (int i = 0; i < coursesLenght; i++) {
-            //oo.add(getSubjects(container, i));
-        }
-
-        return oo;
     }
 
 
