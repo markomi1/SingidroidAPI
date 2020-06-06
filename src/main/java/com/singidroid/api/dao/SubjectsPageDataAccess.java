@@ -41,7 +41,7 @@ public class SubjectsPageDataAccess{
 
 
     public JsonObject getLinkIDsForGivenSubjectID(String subjectId) { //Returns subject link ID's if given ACTUAL LINK, not pre redirected one
-        String sql = "select sections.obavestenja,\n" +
+        String sql = "SELECT sections.obavestenja,\n" +
                 "sections.rezultati,\n" +
                 "sections.\"kol1Pre\",\n" +
                 "sections.\"kol2Pre\",\n" +
@@ -51,7 +51,7 @@ public class SubjectsPageDataAccess{
                 "sections.\"kol2Vez\",\n" +
                 "sections.\"ispitVez\",\n" +
                 "sections.\"dmVez\"\n" +
-                "from sections where sections.\"subjectID\" = ? LIMIT 1";
+                "FROM sections WHERE sections.\"subjectID\" = ? LIMIT 1";
         Object[] arguments = {subjectId};
         List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
 
@@ -114,5 +114,44 @@ public class SubjectsPageDataAccess{
             query.add(0, id);
         }
         return query.get(0).toString();
+    }
+
+    public List<Object> lookupIfPostExistsInDB(Integer postId) {
+        String sql = "SELECT " +
+                "subject_posts.post_title," +
+                "subject_posts.post_teacher," +
+                "subject_posts.post_datetime," +
+                "subject_posts.post_content," +
+                "subject_posts.\"attachmentLink\"" +
+                " FROM \"subject_posts\" WHERE subject_posts.post_id = ?";
+        Object[] arguments = {postId};
+        List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
+            String post_title = resultSet.getString("post_title");
+            String post_teacher = resultSet.getString("post_teacher");
+            Long post_datetime = resultSet.getLong("post_datetime");
+            String post_content = resultSet.getString("post_content");
+            String attachmentLink = resultSet.getString("attachmentLink");
+            Map<String, Object> map = new LinkedHashMap<>();
+            Gson gson = new Gson();
+            List<Object> attachmentLinkToList = gson.fromJson(attachmentLink, List.class);
+
+            map.put("title", post_title); //Put title in Map
+            map.put("teacher", post_teacher);//Put teacher in Map
+            map.put("datetime", post_datetime);//Put datetime in UNIX format in Map
+            map.put("content", post_content);
+            map.put("attachments", attachmentLinkToList);
+            return map;
+        });
+        if (query.isEmpty()) {
+            query.add(0, "0");
+        }
+        return query;
+    }
+
+
+    public void insertPostsIntoDb(Integer postid, String title, String teacher, long datetime, String content, String attachmentLink) {
+        String sql = "INSERT INTO \"public\".\"subject_posts\"(\"post_id\",\"post_title\" ,\"post_teacher\", \"post_datetime\", \"post_content\",\"attachmentLink\") VALUES (?, ?, ?, ?, ?, ?)";
+        Object[] args = {postid, teacher, datetime, content, attachmentLink};
+        jdbcTemplate.update(sql, postid, title, teacher, datetime, content, attachmentLink);
     }
 }

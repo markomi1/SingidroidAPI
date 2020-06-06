@@ -102,14 +102,46 @@
 </div>
 
 
-<div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" id="myModal" role="dialog"
+<div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" id="mainContentModal" role="dialog"
      tabindex="-1">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalTitle">Modal title</h5>
+                <h5 class="modal-title" id="contentModalTitle">Modal title</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <div class="modal-body" id="modal-body">
+            <div class="modal-body" id="contentModal-body">
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal" type="button">Zatvori</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" id="spareModal" role="dialog"
+     tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header customModalTitle">
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h5 class="modal-title" id="spareModalTitle">Modal title</h5>
+                <h6 class="text-muted" id="spareModalDate">Modal Date</h6>
+            </div>
+            <div class='list-line'></div>
+            <div id="refs">
+
+            </div>
+            <div class="modal-body" id="spareModal-body">
+
+            </div>
+            <div class='list-line'></div>
+            <div id="attachmentsHolder">
 
             </div>
             <div class="modal-footer">

@@ -37,7 +37,7 @@ public class PredmetiController{
         model.addAttribute("subjects", subjects);
 
         final long endTime = System.currentTimeMillis();
-        System.out.println("Total execution time: " + (endTime - startTime));
+        System.out.println("Total execution time of index page: " + (endTime - startTime));
         return "index";
     }
 

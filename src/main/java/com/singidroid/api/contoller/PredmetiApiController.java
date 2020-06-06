@@ -45,4 +45,27 @@ public class PredmetiApiController{
 
         return toReturn;
     }
+
+
+    @PostMapping(value = "api/getPost")
+    public List<Object> getPostsByGivenId(@RequestParam(name = "postId", required = false, defaultValue = "0") Integer postId) throws ParseException {
+        final long startTime = System.currentTimeMillis();
+        List<Object> errorObject = new ArrayList<Object>(); //Error Object
+        if (postId == 0 || postId < 0) {
+            errorObject.add("ERROR: postId is empty or negative");
+            return errorObject;
+        }
+
+        List<Object> post = subjectsService.lookupIfPostWasAlreadyScraped(postId); //If the entry in DB exist then i'll return the full thing, if not i'll return 0
+        if (post.get(0).equals("0")) { //If i get back 0 then that ID doesn't exist in DB
+            post = subjectsService.fetchAndInsertPost(postId);
+
+        }
+
+
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time of getPostsByGivenId: " + (endTime - startTime));
+        return post;
+
+    }
 }

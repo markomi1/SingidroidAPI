@@ -65,8 +65,31 @@ body {
   width: 20px;
   margin-left: 5px;
 }
-
-
+.list-title{
+  font-size:16px;
+  font-weight: bold;
+}
+.customModalTitle{
+  display: block;
+}
+.modal {
+  overflow: auto !important;
+}
+#attachmentsHolder{
+  padding-left: 10px;
+  list-style: none;
+}
+.modal.fade.show:nth-child(2){
+  z-index: var(--z-index) !important;
+}
+.list-line{
+  width: 95%;
+  margin-left: 2.5%;
+  border-bottom: 1px #bdbdbd solid;
+}
+#spareModal-body{
+  text-align: center;
+}
 
 .tree,
 .tree ul {
@@ -77,6 +100,7 @@ body {
   color:#369;
   position:relative;
 }
+
 
 .tree ul {margin-left:.5em} /* (indentation/2) */
 
