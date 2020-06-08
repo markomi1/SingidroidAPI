@@ -30,9 +30,11 @@ public class PredmetiApiController{
             errorObject.add("ERROR: option is below 0");
             return errorObject;
         }
+        final long startTime = System.currentTimeMillis();
         List<Object> toReturn = new ArrayList<>();
         switch (option) {
             case 1:
+
                 toReturn.add(subjectsService.getPosts(contentid));
                 break;
             case 2:
@@ -42,7 +44,8 @@ public class PredmetiApiController{
                 errorObject.add("ERROR: how did you end up here? No really...");
                 return errorObject;
         }
-
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time of getSubjectContent and option " + option + " : " + (endTime - startTime));
         return toReturn;
     }
 

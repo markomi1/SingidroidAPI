@@ -173,33 +173,33 @@ public class SubjectsService{
 
         List<Object> attachmentsList = new ArrayList<>();
         Gson gson = new Gson();
+
+
         if (attachmentsElement != null) {//Check to see if there are any attachments at all to begin with, by default we assume there's none
+            int attachmentsLenght = attachmentsElement.select("a").size(); //List of all the <a> tags, they're usually in pairs, aka if there's 1 attachment there are 2 <a> tags
+            //One is for the file type image (first one) and 2nd one is the filename
+            Elements toGoThru = attachmentsElement.select("a"); //To iterate thru
 
-            if (attachmentsElement != null) {//Check to see if there are any attachments at all to begin with, by default we assume there's none
-                int attachmentsLenght = attachmentsElement.select("a").size(); //List of all the <a> tags, they're usually in pairs, aka if there's 1 attachment there are 2 <a> tags
-                //One is for the file type image (first one) and 2nd one is the filename
-                Elements toGoThru = attachmentsElement.select("a"); //To iterate thru
+            for (int i = 0; i < attachmentsLenght; i++) {
+                Map<String, Object> attachmentsMap = new LinkedHashMap<>();
 
-                for (int i = 0; i < attachmentsLenght; i++) {
-                    Map<String, Object> attachmentsMap = new LinkedHashMap<>();
-
-                    if (i % 2 == 0) { //If it's even then we're at the <a> tag that has a child, if not then we're at <a> tag with no children nodes
-                        String toReplace = toGoThru.get(i).childNode(0).attr("src");
-                        //toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_word.svg");
-                        toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/pdf", "/images/file_pdf.svg");
-                        toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/text", "/images/file_document.svg");
-                        toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/powerpoint", "/images/file_powerpoint.svg");
-                        toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_excel.svg");
-                        attachmentsMap.put("type", toReplace); //If true then we get the download link
-                        attachmentsMap.put("attachmentLink", toGoThru.get(i + 1).attr("href")); //If true then we get the download link
-                        attachmentsMap.put("attachmentTitle", toGoThru.get(i + 1).childNode(0).toString()); //And we get the title as well
-                        attachmentsList.add(attachmentsMap);
-                    }
+                if (i % 2 == 0) { //If it's even then we're at the <a> tag that has a child, if not then we're at <a> tag with no children nodes
+                    String toReplace = toGoThru.get(i).childNode(0).attr("src");
+                    //toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_word.svg");
+                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/pdf", "/images/file_pdf.svg");
+                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/text", "/images/file_document.svg");
+                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/powerpoint", "/images/file_powerpoint.svg");
+                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_excel.svg");
+                    attachmentsMap.put("type", toReplace); //If true then we get the download link
+                    attachmentsMap.put("attachmentLink", toGoThru.get(i + 1).attr("href")); //If true then we get the download link
+                    attachmentsMap.put("attachmentTitle", toGoThru.get(i + 1).childNode(0).toString()); //And we get the title as well
+                    attachmentsList.add(attachmentsMap);
                 }
             }
-
-            posts.put("attachments", attachmentsList);
         }
+
+        posts.put("attachments", attachmentsList);
+
         subjectsPageDataAccess.insertPostsIntoDb(postId, title, teacher, parsedDate.getTime(), mainContent, gson.toJson(attachmentsList));
         toReturn.add(posts);
         return toReturn;

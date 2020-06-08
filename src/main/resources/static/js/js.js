@@ -70,6 +70,7 @@ function rippleEffect2() {
       } catch (e) {
         //No error catching
       }
+
       setTimeout(() => {
         try {
           ripple.classList.add('start')
@@ -100,18 +101,37 @@ function rippleEffect2() {
   })
 }
 
+function onLoadAction(){
+  var buttons = document.getElementsByClassName("btn-raised");
+  for (let i = 0; i < buttons.length; i++) {
+    if(buttons[i].getAttribute("data-linkid") == 0){
+      buttons[i].classList.add("disabled");
+    }
+  }
+}
+
 
 function toOpen(id, option, titleAdd) {
-  var options = {
+var options = {
     content: "Ucitavanje...  <img src='/images/oval.svg' id='loader-icon' />  ",
     timeout: 0,
-    htmlAllowed: true,
+    htmlAllowed: true
+  };
+
+  if(id == 0){
+    options = {
+      content: "Kategorija je iskljucena",
+      timeout: 1000,
+      htmlAllowed: true
+    };
+    var t = $.snackbar(options);
+    return;
   }
   var t = $.snackbar(options);
 
   switch (option) {
     case 1:
-      loadPosts(id, t, titleAdd)
+      loadPosts(id, t, titleAdd);
       break;
     case 2:
       loadTests(id, t, titleAdd);
@@ -243,6 +263,7 @@ function loadTests(id, snackbar, titleAdd) { //Gets list of tests
       title.innerHTML = "";
       title.innerHTML = serverResponse[0].title + " " + titleAdd;
       d1.insertAdjacentHTML('beforeend', serverResponse[0].content);
+      document.documentElement.style.setProperty('--z-index', "1050");
       $('#mainContentModal').modal('show');
     }
   }
