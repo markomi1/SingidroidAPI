@@ -1,16 +1,19 @@
 package com.singidroid.api.contoller;
 
 
+import com.singidroid.api.caching.CacheConfig;
 import com.singidroid.api.service.SubjectsService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
@@ -24,8 +27,9 @@ public class PredmetiController{
         this.subjectsService = subjectsService;
     }
 
+    @Cacheable(CacheConfig.CACHE_ONE)
     @RequestMapping(value = "/predmeti", method = RequestMethod.GET)
-    public String index(HttpServletRequest request, Model model) throws IOException {
+    public String index(HttpServletRequest request, Model model, HttpServletResponse response) throws IOException {
         final long startTime = System.currentTimeMillis();
 
         String actualID = subjectsService.getSubjectActualID(request.getParameter("id")).replace("[", "").replace("]", "");
@@ -38,6 +42,7 @@ public class PredmetiController{
 
         final long endTime = System.currentTimeMillis();
         System.out.println("Total execution time of index page: " + (endTime - startTime));
+
         return "index";
     }
 
