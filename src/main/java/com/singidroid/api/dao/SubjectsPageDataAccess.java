@@ -20,6 +20,7 @@ public class SubjectsPageDataAccess{
     }
 
 
+    //Returns subject list given an element and position. Also packages it all into a MAP<String, Object>
     public Map<String, Object> getSubjects(Elements coursename, int i) {
 
         Map<String, Object> map = new LinkedHashMap<>();
@@ -40,7 +41,7 @@ public class SubjectsPageDataAccess{
     }
 
 
-    public JsonObject getLinkIDsForGivenSubjectID(String subjectId) { //Returns subject link ID's if given ACTUAL LINK, not pre redirected one
+    public JsonObject getLinkIDsForGivenSubjectID(String subjectId) { //Returns subject link ID's if given ACTUAL LINK( post redirect), not pre redirected one
         String sql = "SELECT sections.obavestenja,\n" +
                 "sections.rezultati,\n" +
                 "sections.\"kol1Pre\",\n" +
@@ -90,6 +91,7 @@ public class SubjectsPageDataAccess{
         return jsonQuery;
     }
 
+    //Extracts teacher/assistant text from the given element
     public ArrayList getTeachersForGivenSubject(Elements elem, int position) {
         int size = elem.get(position).getElementsByClass("teachers").select("li").size();
         Elements toFind = elem.get(position).getElementsByClass("teachers").select("li");
@@ -100,7 +102,8 @@ public class SubjectsPageDataAccess{
         return arr;
     }
 
-
+    //Takes subject ID, pre redirect one (Example Mobile Dev ID at course page 120 is 829, but when you actually click on it it redirects you to 436) ->
+    // and returns the actual subject ID, post-redirect
     public String getSubjectActualIDFromDataBase(String id) {
         String sql = "SELECT redirect_table.id,actual_id FROM redirect_table where redirect_table.id = ?";
         Object[] arguments = {id};
@@ -116,6 +119,8 @@ public class SubjectsPageDataAccess{
         return query.get(0).toString();
     }
 
+
+    //Looks if the post with given post ID is already cached in the DB, if not it returns a List<Object> with 0 inside
     public List<Object> lookupIfPostExistsInDB(Integer postId) {
         String sql = "SELECT " +
                 "subject_posts.post_title," +
@@ -148,10 +153,57 @@ public class SubjectsPageDataAccess{
         return query;
     }
 
-
+    //Inserts post with all of the content below into the DB.
     public void insertPostsIntoDb(Integer postid, String title, String teacher, long datetime, String content, String attachmentLink) {
         String sql = "INSERT INTO \"public\".\"subject_posts\"(\"post_id\",\"post_title\" ,\"post_teacher\", \"post_datetime\", \"post_content\",\"attachmentLink\") VALUES (?, ?, ?, ?, ?, ?)";
         Object[] args = {postid, teacher, datetime, content, attachmentLink};
         jdbcTemplate.update(sql, postid, title, teacher, datetime, content, attachmentLink);
+    }
+
+    //Caches the given course ID (actualID) and subject list, adds the timestamp of caching as well which is later used to see when the caching happened
+    public void cacheToDBSubjects(String actualID, List<Object> subjects) {
+        Gson gson = new Gson(); //Using GSON to turn the List<Object> into a JSON
+        String sql = "INSERT INTO \"public\".\"cached_subjects\"(\"courseID\",\"cachedCourse\",\"timestamp\") VALUES (?,?,?)";
+        Object[] args = {actualID, subjects, System.currentTimeMillis()};
+        int time = Math.round(System.currentTimeMillis() / 1000); //UTC UNIX TIME
+        jdbcTemplate.update(sql, actualID, gson.toJson(subjects), time);
+    }
+
+    //Updates the cached subject with given ID and list of Subjects, replaces timestamp with the one at the time of update, aka, current time
+    public void updateCachedSubject(String actualID, List<Object> subjects) {
+        Gson gson = new Gson(); //Using GSON to turn the List<Object> into a JSON
+        String sql = "UPDATE \"public\".\"cached_subjects\" SET \"cachedCourse\" = ?, \"timestamp\" = ? WHERE \"courseID\" = ?";
+        int time = Math.round(System.currentTimeMillis() / 1000); //UTC UNIX TIME
+        jdbcTemplate.update(sql, gson.toJson(subjects), time, actualID);
+    }
+
+
+    //Gets the cached subject if it exists, if not it'll return an list with 0 in it
+    //Takes actual subject ID which can be gotten from
+    public List<Object> getChachedVersionIfItExists(String actualID) {
+        String sql = "SELECT cached_subjects.\"courseID\"," +
+                "cached_subjects.\"cachedCourse\"," +
+                "cached_subjects.\"timestamp\"" +
+                " FROM \"cached_subjects\"" +
+                " WHERE cached_subjects.\"courseID\" = ?";
+        Object[] arguments = {actualID};
+        List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
+            String courseID = resultSet.getString("courseID");
+            String cachedCourse = resultSet.getString("cachedCourse");
+            int timestamp = resultSet.getInt("timestamp");
+            Map<String, Object> map = new LinkedHashMap<>();
+            Gson gson = new Gson();
+            List<Object> cachedCoursesToArray = gson.fromJson(cachedCourse, List.class); //Turning String Json into Json that's then saved into List<Object>
+
+            map.put("courseID", courseID); //Put courseID in Map
+            map.put("cachedCourse", cachedCoursesToArray);//Put parsed cachedCourse into the Map
+            map.put("timestamp", timestamp);//Put datetime in UNIX format in Map
+
+            return map;
+        });
+        if (query.isEmpty()) {
+            query.add(0, "0");
+        }
+        return query;
     }
 }

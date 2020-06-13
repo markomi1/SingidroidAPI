@@ -2,6 +2,7 @@ package com.singidroid.api.service;
 
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.singidroid.api.dao.SubjectsPageDataAccess;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -21,7 +22,7 @@ import java.util.regex.Pattern;
 public class SubjectsService{
 
     private final SubjectsPageDataAccess subjectsPageDataAccess;
-
+    private final int SUBJECT_CACHE_TIME = 86400; //Unix secons, day is 86400
     @Autowired
     public SubjectsService(SubjectsPageDataAccess subjectsPageDataAccess) {
         this.subjectsPageDataAccess = subjectsPageDataAccess;
@@ -204,4 +205,50 @@ public class SubjectsService{
         toReturn.add(posts);
         return toReturn;
     }
+
+    public void cacheSubjects(String actualID, List<Object> subjects) {
+
+        List<Object> cache = subjectsPageDataAccess.getChachedVersionIfItExists(actualID);
+
+        if (cache.get(0).equals("0")) {
+            subjectsPageDataAccess.cacheToDBSubjects(actualID, subjects);
+        } else {
+            Gson gson = new Gson();
+            String toJson = gson.toJson(cache.get(0));
+            JsonObject jsonQuery = gson.fromJson(toJson, JsonObject.class);
+            int currentTime = Math.round(System.currentTimeMillis() / 1000);
+            int cacheTime = jsonQuery.get("timestamp").getAsInt();
+            int passedTime = currentTime - cacheTime;
+            if (passedTime > SUBJECT_CACHE_TIME) {
+                System.out.println("A day has passed, updating course with ID: " + actualID);
+                subjectsPageDataAccess.updateCachedSubject(actualID, subjects);
+            }
+        }
+    }
+
+    public List<Object> checkIfCachedVersionExists(String actualID, boolean OverrideDayCheck) {
+        Gson gson = new Gson();
+        List<Object> toReturn = new ArrayList<>();
+        List<Object> cachedSubjects = subjectsPageDataAccess.getChachedVersionIfItExists(actualID);
+
+        if (cachedSubjects.get(0).equals("0")) {
+            toReturn.add("0");
+            return toReturn;
+        }
+
+        String toJson = gson.toJson(cachedSubjects.get(0));
+        JsonObject jsonQuery = gson.fromJson(toJson, JsonObject.class);
+        int currentTime = Math.round(System.currentTimeMillis() / 1000);
+        int cacheTime = jsonQuery.get("timestamp").getAsInt();
+        int passedTime = currentTime - cacheTime;
+        if (passedTime > SUBJECT_CACHE_TIME && !OverrideDayCheck) {
+            System.out.println("A day has passed, updating course with ID: " + actualID);
+            toReturn.add("0");
+            return toReturn;
+        }
+
+        return cachedSubjects;
+    }
+
+
 }

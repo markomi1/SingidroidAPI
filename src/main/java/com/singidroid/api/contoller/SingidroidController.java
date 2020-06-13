@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class SingidroidController{  //TODO HTTPS is disabled for now as it need to be implemented on Android.
+public class SingidroidController{  //NOTE HTTPS is working now on both the android and the API
 
     private final SingidroidService singidroidService;
     private final RestTemplate restTemplate;
@@ -81,7 +81,6 @@ public class SingidroidController{  //TODO HTTPS is disabled for now as it need 
     //Don't need repo for jackshit but will leave it as i'm too lazy to clean it up, it works, somehow.
 
 
-    //TODO Implement some more security in the API itself, add news parsing and that should be it.
 
     @GetMapping("/appInit/getYears")
     @Cacheable("response2") //This doesn't change at all, so i can set it to be cached so i don't hit the DB that often
