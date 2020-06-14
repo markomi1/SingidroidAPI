@@ -17,7 +17,8 @@ body {
   padding-left: 5px !important;
   width: 100%;
 }
-.colum-name{
+
+.colum-name {
   text-align: center;
 }
 
@@ -25,13 +26,10 @@ body {
 html,
 body {
   margin: 0;
-
   padding: 0;
-
   min-width: 100%;
   width: 100%;
   max-width: 100%;
-
   min-height: 100%;
   height: 100%;
   max-height: 100%;
@@ -47,9 +45,9 @@ body {
 }
 
 
-.modal-body{
-  padding-left: 0px !important;
-  padding-right: 0px !important;
+.modal-body {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .start {
@@ -61,87 +59,109 @@ body {
   transition: transform 100ms, opacity 100ms;
   opacity: 0.1;
 }
-#loader-icon{
+
+#loader-icon {
   width: 20px;
   margin-left: 5px;
 }
-.list-title{
-  font-size:16px;
+
+.list-title {
+  font-size: 16px;
   font-weight: bold;
 }
-.customModalTitle{
+
+.customModalTitle {
   display: block;
 }
+
 .modal {
   overflow: auto !important;
 }
-#attachmentsHolder{
+
+#attachmentsHolder {
   padding-left: 10px;
   list-style: none;
 }
-.disabled{
+
+.disabled {
   background-color: #a2a2a2 !important;;
 }
-.modal.fade.show:nth-child(2){
+
+.modal.fade.show:nth-child(2) {
   z-index: var(--z-index) !important;
 }
-.list-line{
+
+.list-line {
   width: 95%;
   margin-left: 2.5%;
   border-bottom: 1px #bdbdbd solid;
 }
-#spareModal-body{
+
+#spareModal-body {
   text-align: center;
 }
 
+/* Stole from some site, forgot which */
 .tree,
 .tree ul {
   font-size: 10px;
-  margin:0 0 0 1em; /* indentation */
-  padding:0;
-  list-style:none;
-  color:#369;
-  position:relative;
+  margin: 0 0 0 1em;
+  /* indentation */
+  padding: 0;
+  list-style: none;
+  color: #369;
+  position: relative;
 }
 
 
-.tree ul {margin-left:.5em} /* (indentation/2) */
+.tree ul {
+  margin-left: .5em
+}
+
+/* (indentation/2) */
 
 
 .tree ul:before {
-  content:"";
-  display:block;
-  width:0;
-  position:absolute;
-  top:0;
-  bottom:0;
-  left:0;
-  border-left:1px solid;
+  content: "";
+  display: block;
+  width: 0;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid;
 }
 
 .tree li {
-  margin:0;
-  padding:0 1.5em; /* indentation + .5em */
-  line-height:2em; /* default list item's `line-height` */
-  font-weight:bold;
-  position:relative;
+  margin: 0;
+  padding: 0 1.5em;
+  /* indentation + .5em */
+  line-height: 2em;
+  /* default list item's `line-height` */
+  font-weight: bold;
+  position: relative;
 }
 
 .tree ul li:before {
-  content:"";
-  display:block;
-  width:10px; /* same with indentation */
-  height:0;
-  border-top:1px solid;
-  margin-top:-1px; /* border top width */
-  position:absolute;
-  top:1em; /* (line-height/2) */
-  left:0;
+  content: "";
+  display: block;
+  width: 10px;
+  /* same with indentation */
+  height: 0;
+  border-top: 1px solid;
+  margin-top: -1px;
+  /* border top width */
+  position: absolute;
+  top: 1em;
+  /* (line-height/2) */
+  left: 0;
 }
 
 .tree li:last-child:before {
-  background:white; /* same with body background */
-  height:auto;
-  top:1em; /* (line-height/2) */
-  bottom:0;
+  background: white;
+  /* same with body background */
+  height: auto;
+  top: 1em;
+  /* (line-height/2) */
+  bottom: 0;
 }

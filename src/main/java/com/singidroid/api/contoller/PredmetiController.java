@@ -79,7 +79,7 @@ public class PredmetiController{
             model.addAttribute("subjects", subjects);
             final long endTime = System.currentTimeMillis();
             System.out.println("Total execution time of index cached page: " + (endTime - startTime));
-            return "index";
+            return "index";//index
         }
 
 

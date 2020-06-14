@@ -1,11 +1,12 @@
 'use strict';
 
-var GLOBAL_AXIOS_CONFIG = {
+let OPENED_MODALS = [];
+
+const GLOBAL_AXIOS_CONFIG = {
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded'
   }
-};
-
+}
 
 function rippleEffect() {
   const letters = Array.from(document.querySelectorAll('.card'))
@@ -111,7 +112,7 @@ function rippleEffect2() {
 }
 
 function onLoadAction() {
-  var buttons = document.getElementsByClassName("btn-raised");
+  let buttons = document.getElementsByClassName("btn-raised");
   for (let i = 0; i < buttons.length; i++) {
     if (buttons[i].getAttribute("data-linkid") == 0) {
       buttons[i].classList.add("disabled");
@@ -121,22 +122,23 @@ function onLoadAction() {
 
 
 function toOpen(id, option, titleAdd) {
-  var options = {
-    content: "Ucitavanje...  <img src='/images/oval.svg' id='loader-icon' />  ",
+  let t;
+  let options = {
+    content: "Ucitavanje...  <img alt='Loader' src='/images/oval.svg' id='loader-icon' />  ",
     timeout: 0,
     htmlAllowed: true
   };
 
-  if (id == 0) {
+  if (id === 0) {
     options = {
       content: "Kategorija je iskljucena",
       timeout: 1000,
       htmlAllowed: true
     };
-    var t = $.snackbar(options);
+    $.snackbar(options);
     return;
   }
-  var t = $.snackbar(options);
+  t = $.snackbar(options);
 
   switch (option) {
     case 1:
@@ -149,7 +151,7 @@ function toOpen(id, option, titleAdd) {
 }
 
 function errorSnackbar() {
-  var options = {
+  let options = {
     content: "Greška prilikom učitavanja!",
     timeout: 4000,
     style: "error-snackbar",
@@ -163,19 +165,20 @@ function loadPosts(id, snackbar, titleAdd) {
 
   document.getElementById("contentModalTitle").innerHTML = titleAdd;
 
-  var d1 = document.getElementById("contentModal-body");
+  let d1 = document.getElementById("contentModal-body");
 
-  axios.post('/api/getSubjectContent', {
-    contentid: id,
-    option: '1'
-  }, GLOBAL_AXIOS_CONFIG)
+  const params = new URLSearchParams();
+  params.append('contentid', id);
+  params.append('option', 1);
+
+  axios.post('/api/getSubjectContent', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
-        var serverResponse = response.data;
+        let serverResponse = response.data;
         $(snackbar[0]).snackbar("hide");
 
         d1.innerHTML = "";
 
-        var toInsert = "<div class='list-group'>";
+        let toInsert = "<div class='list-group'>";
         for (let i = 0; i < serverResponse[0].length; i++) {
           toInsert += "<a onclick='getPost(" + serverResponse[0][i].postlinkid + ")' class='list-group-item list-group-item-action flex-column align-items-start'><div class='d-flex w-100 justify-content-between'>" +
               "<h6 class='mb-1 list-title'>" + serverResponse[0][i].title + "</h6><small class='text-muted'>" + getFormattedDate(serverResponse[0][i].datetime) + "</small></div><p class='mb-1'>" + serverResponse[0][i].teacherName + "</p></a><div class='list-line'></div>";
@@ -183,28 +186,80 @@ function loadPosts(id, snackbar, titleAdd) {
         toInsert += "</div>";
         d1.insertAdjacentHTML('beforeend', toInsert);
         document.documentElement.style.setProperty('--z-index', "1050");
-        $('#mainContentModal').modal('show');
+        let modal = $('#mainContentModal');
+
+        OPENED_MODALS.push(modal[0].id); //Pushes modal ID onto the stack
+        try {
+          window.JSInterface.modalNumber(OPENED_MODALS.length);
+        } catch (e) {
+          console.log("Android interface not found")
+        }
+
+        modal.modal('show');
+
       }).catch(function (error) {
     console.log(error);
     errorSnackbar();
   });
+}
 
+function hideTopMostModal() {
+  let length = OPENED_MODALS.length;
+  console.log("Hide called")
+  if (length > 0) {
+    let modalID = OPENED_MODALS[length - 1];
+    $("#" + modalID).modal("hide");
+    try {
+      window.JSInterface.backPressed(true); //Means that it popped a modal from the stack
+
+    } catch (e) {
+      console.log("Android interface not found")
+    }
+
+  } else {
+    try {
+      window.JSInterface.backPressed(false); //Means there are no more modals to pop
+    } catch (e) {
+      console.log("Android interface not found")
+    }
+  }
 
 }
 
+$("#mainContentModal").on('hide.bs.modal', function () {
+  OPENED_MODALS.pop();
+  window.JSInterface.modalNumber(OPENED_MODALS.length);
+  console.log("MainContentModal popped " + OPENED_MODALS);
+});
+
+$('#spareModal').on('hidden.bs.modal', function () { //Used to make background gray by dynamically changing CSS
+  document.documentElement.style.setProperty('--z-index', "1060");
+  OPENED_MODALS.pop();
+  try {
+    window.JSInterface.modalNumber(OPENED_MODALS.length);
+  } catch (e) {
+    console.log("Android interface not found");
+  }
+  console.log("SpareModal popped " + OPENED_MODALS);
+})
+
+
 function getPost(postid) {
-  var options = {
+  let options = {
     content: "Ucitavanje...", // text of the snackbar
     style: "toast", // add a custom class to your snackbar
-    timeout: 500, // time in milliseconds after the snackbar autohides, 0 is disabled
+    timeout: 0, // time in milliseconds after the snackbar autohides, 0 is disabled
     htmlAllowed: true, // allows HTML as content value
-  }
-  var t = $.snackbar(options);
-  var d1 = document.getElementById("spareModal-body");
-
-  axios.post('/api/getPost', {postId: postid}, GLOBAL_AXIOS_CONFIG)
+  };
+  let t = $.snackbar(options);
+  let d1 = document.getElementById("spareModal-body");
+  const params = new URLSearchParams();
+  params.append('postId', postid);
+  axios.post('/api/getPost', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
-        var serverResponse = response.data;
+        let serverResponse = response.data;
+
+        $(t[0]).snackbar("hide");
 
         d1.innerHTML = "";
         document.getElementById("spareModalTitle").innerHTML = serverResponse[0].title;
@@ -214,30 +269,34 @@ function getPost(postid) {
         d1.insertAdjacentHTML('beforeend', serverResponse[0].content);
 
         if (serverResponse[0].content.length > 1000 && serverResponse[0].attachments.length !== 0) {
-          document.getElementById("refs").innerHTML = "<a href=\"#attachemtnsHolder\">Idi do priloga</a>";
+          document.getElementById("refs").innerHTML = "<a href='#attachemtnsHolder'>Idi do priloga</a>";
         }
         if (serverResponse[0].attachments !== undefined) {
           addAttachments(serverResponse[0].attachments);
         }
 
         document.documentElement.style.setProperty('--z-index', "10");
-
-        $('#spareModal').modal('show');
+        let modal = $('#spareModal');
+        OPENED_MODALS.push(modal[0].id);
+        try {
+          window.JSInterface.modalNumber(OPENED_MODALS.length);
+        } catch (e) {
+          console.log("Android interface not found");
+        }
+        modal.modal('show');
       }).catch(function (error) {
     console.log(error);
     errorSnackbar();
   });
-
-
 }
 
-$('#spareModal').on('hidden.bs.modal', function (e) { //Used to make background gray by dynamically changing CSS
-  document.documentElement.style.setProperty('--z-index', "1060");
-})
+
+
+
 
 function addAttachments(AttArray) {
-  const arrSize = AttArray.length;
-  const attachments = document.getElementById("attachmentsHolder");
+  let arrSize = AttArray.length;
+  let attachments = document.getElementById("attachmentsHolder");
   attachments.innerHTML = "";
   for (let i = 0; i < arrSize; i++) {
     attachments.insertAdjacentHTML("beforeend", "<li><span class='fp-filename-icon'>" +
@@ -248,25 +307,36 @@ function addAttachments(AttArray) {
 }
 
 
+
 function loadTests(id, snackbar, titleAdd) { //Gets list of tests
 
-  var title = document.getElementById("contentModalTitle");
-  var d1 = document.getElementById("contentModal-body");
+  let title = document.getElementById("contentModalTitle");
+  let d1 = document.getElementById("contentModal-body");
 
+  const params = new URLSearchParams();
+  params.append('contentid', id);
+  params.append('option', 2);
 
-  axios.post('/api/getSubjectContent', {
-    contentid: id,
-    option: '2'
-  }, GLOBAL_AXIOS_CONFIG)
+  axios.post('/api/getSubjectContent', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
-        var serverResponse = response.data;
+        let serverResponse = response.data;
         $(snackbar[0]).snackbar("hide");
         d1.innerHTML = "";
         title.innerHTML = "";
         title.innerHTML = serverResponse[0].title + " " + titleAdd;
         d1.insertAdjacentHTML('beforeend', serverResponse[0].content);
         document.documentElement.style.setProperty('--z-index', "1050");
-        $('#mainContentModal').modal('show');
+        let modal = $('#mainContentModal');
+
+        OPENED_MODALS.push(modal[0].id); //Pushes modal ID onto the stack
+        try {
+          window.JSInterface.modalNumber(OPENED_MODALS.length);
+        } catch (e) {
+          console.log("Android interface not found");
+        }
+
+        modal.modal('show');
+
       }).catch(function (error) {
     console.log(error);
     errorSnackbar();
@@ -276,7 +346,7 @@ function loadTests(id, snackbar, titleAdd) { //Gets list of tests
 
 function slider(toGet) {
 
-  var doc = toGet.offsetParent.childNodes[3];
+  let doc = toGet.offsetParent.childNodes[3];
 
   if ($(doc).is(":hidden")) {
     $(doc).slideDown("fast", function () {
@@ -289,21 +359,17 @@ function slider(toGet) {
 
 
 function getFormattedDate(unixtime) {
-  var date = new Date(unixtime * 1000);
+  let date = new Date(unixtime * 1000);
 
-  var months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let months = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  var month = months[date.getMonth()];
-  var day = date.getDate();
-  var hour = date.getHours();
-  var min = date.getMinutes();
-  var sec = date.getSeconds();
-
+  let month = months[date.getMonth()];
+  let day = date.getDate();
+  let hour = date.getHours();
+  let min = date.getMinutes();
 
   day = (day < 10 ? "0" : "") + day;
   hour = (hour < 10 ? "0" : "") + hour;
   min = (min < 10 ? "0" : "") + min;
-  var str = day + " " + month + " " + date.getFullYear() + ", " + hour + ":" + min;
-
-  return str;
+  return day + " " + month + " " + date.getFullYear() + ", " + hour + ":" + min;
 }
