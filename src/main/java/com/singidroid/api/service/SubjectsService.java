@@ -4,9 +4,11 @@ package com.singidroid.api.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.singidroid.api.dao.SubjectsPageDataAccess;
+import com.singidroid.api.model.Schedule;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.nodes.Node;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -48,7 +50,6 @@ public class SubjectsService{
         Document doc = Jsoup.connect(blogUrl).header("Accept-Language", "en-US,en;q=0.5").get();
         Elements toExtract = doc.getElementsByClass("discussion");
         int toExtactLenth = toExtract.size();
-
         for (int i = 0; i < toExtactLenth; i++) {
             Map<String, Object> map = new LinkedHashMap<>();
             Elements nameAndDate = toExtract.get(i).getElementsByClass("lastpost").select("a");
@@ -60,16 +61,13 @@ public class SubjectsService{
             map.put("datetime", parsedDate.getTime() / 1000);
             toReturn.add(map);
         }
-
         return toReturn;
     }
 
     public String linkExtractor(String link) {
         final String regex = "=\\d*";
-
         final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
         final Matcher matcher = pattern.matcher(link);
-
         while (matcher.find()) {
             String temp = matcher.group(0).replace("=", "");
             return temp;
@@ -77,30 +75,23 @@ public class SubjectsService{
         return null;
     }
 
-    public Boolean searchDBwithGivenContentId(String contentId) {
-
-        return false;
-    }
-
-
     public Map<String, String> getTests(String contentid) throws IOException {
-
         Map<String, String> map = new LinkedHashMap<>();
-
         String blogUrl = "http://predmet.singidunum.ac.rs/mod/folder/view.php?id=" + contentid;
         Document doc = Jsoup.connect(blogUrl).get();
         Element treeName = doc.getElementById("folder_tree0").selectFirst("ul");
-        String title = doc.getElementById("intro").text();
-        String treeContentText = "<ul class='tree'>" + treeName.html().replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/folder-24", "/images/folder_open-black.svg") + "</ul>";
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/document-24", "/images/file_word.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/pdf-24", "/images/file_pdf.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/archive-24", "/images/zip_box.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/text-24", "/images/file_document.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/mpeg-24", "/images/file_video.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/powerpoint-24", "/images/file_powerpoint.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/unknown-24", "/images/file_question.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/sourcecode-24", "/images/file_cog.svg");
-        treeContentText = treeContentText.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_excel.svg");
+        String title = doc.getElementById("intro").text(); //Replacing their image sources with mine down below
+        String treeContentText = "<ul class='tree'>" + treeName.html().replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/folder-24", "/images/folder_open-black.svg") + "</ul>";
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/document-24", "/images/file_word.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/pdf-24", "/images/file_pdf.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/archive-24", "/images/zip_box.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/text-24", "/images/file_document.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/mpeg-24", "/images/file_video.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/powerpoint-24", "/images/file_powerpoint.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/unknown-24", "/images/file_question.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/sourcecode-24", "/images/file_cog.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/spreadsheet-24", "/images/file_excel.svg");
+        treeContentText = treeContentText.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/html-24", "/images/file_html5.svg");
         Document docc = Jsoup.parse(treeContentText);
         map.put("title", title);
         map.put("content", treeContentText);
@@ -186,11 +177,11 @@ public class SubjectsService{
 
                 if (i % 2 == 0) { //If it's even then we're at the <a> tag that has a child, if not then we're at <a> tag with no children nodes
                     String toReplace = toGoThru.get(i).childNode(0).attr("src");
-                    //toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_word.svg");
-                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/pdf", "/images/file_pdf.svg");
-                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/text", "/images/file_document.svg");
-                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/powerpoint", "/images/file_powerpoint.svg");
-                    toReplace = toReplace.replace("http://predmet.singidunum.ac.rs/theme/image.php/clean/core/1589271127/f/spreadsheet", "/images/file_excel.svg");
+                    //toReplace = toReplace.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/spreadsheet", "/images/file_word.svg");
+                    toReplace = toReplace.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/pdf", "/images/file_pdf.svg");
+                    toReplace = toReplace.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/text", "/images/file_document.svg");
+                    toReplace = toReplace.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/powerpoint", "/images/file_powerpoint.svg");
+                    toReplace = toReplace.replaceAll("http:\\/\\/predmet\\.singidunum\\.ac\\.rs\\/theme\\/image\\.php\\/clean\\/core\\/\\d*\\/f\\/spreadsheet", "/images/file_excel.svg");
                     attachmentsMap.put("type", toReplace); //If true then we get the download link
                     attachmentsMap.put("attachmentLink", toGoThru.get(i + 1).attr("href")); //If true then we get the download link
                     attachmentsMap.put("attachmentTitle", toGoThru.get(i + 1).childNode(0).toString()); //And we get the title as well
@@ -250,5 +241,45 @@ public class SubjectsService{
         return cachedSubjects;
     }
 
+    public boolean checkIfPostsIdExists(String contentid) {
+        return subjectsPageDataAccess.checkIfPostsIdExits(contentid);
+    }
+
+    public List<Object> getSchedule() throws IOException {
+        String blogUrl = "http://raspored.singidunum.ac.rs/raspored_po_predavacima.php";
+        Document doc = Jsoup.connect(blogUrl).ignoreContentType(true).header("Accept-Language", "en-US,en;q=0.5").get();
+        Elements rows = doc.getElementsByClass("zapis");
+        List<Object> toReturn = new ArrayList<>();
+        final long startTime = System.currentTimeMillis();
+        for (Element row : rows) {
+            try {
+                Schedule schedule = new Schedule();
+                schedule.setTeacher(row.getElementsByClass("nastavnik").text());
+                schedule.setSubjects(getPredmeti(row.getElementsByClass("predmeti")));
+                schedule.setDay(row.getElementsByClass("dan").text());
+                schedule.setFrom(row.getElementsByClass("od").text());
+                schedule.setTill(row.getElementsByClass("do").text());
+                schedule.setRoom(row.getElementsByClass("prostorija").text());
+                toReturn.add(schedule);
+            } catch (Exception e) {
+                System.out.println("Special case found, skipping");
+            }
+        }
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time of getPostsByGivenId: " + (endTime - startTime));
+        return toReturn;
+    }
+
+    public List<String> getPredmeti(Elements toFind) {
+        List<Node> te = toFind.get(0).childNodes();
+        List<String> toReturn = new ArrayList<>();
+        for (Node node : te) {
+            String vv = node.toString();
+            if (!vv.equals("<br>") && !vv.equals(" ")) {
+                toReturn.add(vv);
+            }
+        }
+        return toReturn;
+    }
 
 }

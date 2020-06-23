@@ -82,25 +82,17 @@ public class CoursesDataAccess {
     }
 
     public List<Object> getCoursesForGivenYearAndFaculty(String faks, Integer year) {
-        String sql = "SELECT faculties.id," +
-                "years_id," +
-                "courses_id," +
-                "elementid," +
-                "courses.title" +
-                " FROM courses,faculties WHERE" +
-                " faculties.internal_id = courses.faculties_id and faculties.id = ? and years_id = ?";
+        String sql = "SELECT faculties.id,years_id,courses_id,courses.title FROM courses,faculties WHERE faculties.internal_id = courses.faculties_id and faculties.id = ? and years_id = ?";
         Object[] arguments = {faks, year};
         List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
             String id = resultSet.getString("id");
             int years_id = resultSet.getInt("years_id");
             int courses_id = resultSet.getInt("courses_id");
-            String elementid = resultSet.getString("elementid");
             String title = resultSet.getString("title");
             Map<String, String> map = new LinkedHashMap<>();
             map.put("id", id);
             map.put("years_id", String.valueOf(years_id));
             map.put("courses_id", String.valueOf(courses_id));
-            map.put("elementid", elementid);
             map.put("title", title);
             return map;
         });
@@ -141,20 +133,18 @@ public class CoursesDataAccess {
     }
 
     public List<Object> getNewsSources() {
-        String sql = "SELECT faculty_id," +
+        String sql = "SELECT " +
                 "faculty_title," +
                 "faculty_short," +
-                "categories," + " " +
+                "categories," +
                 "text_background_hex" +
                 " FROM \"newsSources\"";
         List<Object> query = jdbcTemplate.query(sql, (resultSet, i) -> {
-            int faculty_id = resultSet.getInt("faculty_id");
             String faculty_title = resultSet.getString("faculty_title");
             String faculty_short = resultSet.getString("faculty_short");
             String categories = resultSet.getString("categories");
             String color = resultSet.getString("text_background_hex");
             Map<String, String> map = new LinkedHashMap<>();
-            map.put("faculty_id", String.valueOf(faculty_id));
             map.put("faculty_title", faculty_title);
             map.put("faculty_short", faculty_short);
             map.put("categories", categories);

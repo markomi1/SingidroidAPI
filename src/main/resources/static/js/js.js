@@ -150,10 +150,45 @@ function toOpen(id, option, titleAdd) {
   }
 }
 
+function checkID(id) {
+  let options = {
+    content: "Ucitavanje...  <img alt='Loader' src='/images/oval.svg' id='loader-icon' />  ",
+    timeout: 0,
+    htmlAllowed: true
+  };
+  if (id === 0) {
+    options = {
+      content: "Kategorija je iskljucena",
+      timeout: 1000,
+      htmlAllowed: true
+    };
+    $.snackbar(options);
+    return null;
+  }
+  return $.snackbar(options);
+}
+
+function getPosts(id, titleAdd) {
+  let t = checkID(id)
+  if (t == null) {
+    return
+  }
+  loadPosts(id, t, titleAdd);
+}
+
+function getFolders(id, titleAdd) {
+  let t = checkID(id)
+  if (t == null) {
+    return
+  }
+  loadTestFolder(id, t, titleAdd);
+}
+
+
 function errorSnackbar() {
   let options = {
     content: "Greška prilikom učitavanja!",
-    timeout: 4000,
+    timeout: 5000,
     style: "error-snackbar",
     htmlAllowed: true
   };
@@ -169,8 +204,6 @@ function loadPosts(id, snackbar, titleAdd) {
 
   const params = new URLSearchParams();
   params.append('contentid', id);
-  params.append('option', 1);
-
   axios.post('/api/getSubjectContent', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
         let serverResponse = response.data;
@@ -199,6 +232,7 @@ function loadPosts(id, snackbar, titleAdd) {
 
       }).catch(function (error) {
     console.log(error);
+    $(snackbar[0]).snackbar("hide");
     errorSnackbar();
   });
 }
@@ -228,7 +262,12 @@ function hideTopMostModal() {
 
 $("#mainContentModal").on('hide.bs.modal', function () {
   OPENED_MODALS.pop();
-  window.JSInterface.modalNumber(OPENED_MODALS.length);
+  try {
+    window.JSInterface.modalNumber(OPENED_MODALS.length);
+  } catch (e) {
+    console.log("Android interface not found")
+  }
+
   console.log("MainContentModal popped " + OPENED_MODALS);
 });
 
@@ -286,6 +325,7 @@ function getPost(postid) {
         modal.modal('show');
       }).catch(function (error) {
     console.log(error);
+    $(snackbar[0]).snackbar("hide");
     errorSnackbar();
   });
 }
@@ -307,17 +347,15 @@ function addAttachments(AttArray) {
 }
 
 
-
-function loadTests(id, snackbar, titleAdd) { //Gets list of tests
+function loadTestFolder(id, snackbar, titleAdd) { //Gets list of tests
 
   let title = document.getElementById("contentModalTitle");
   let d1 = document.getElementById("contentModal-body");
 
   const params = new URLSearchParams();
   params.append('contentid', id);
-  params.append('option', 2);
 
-  axios.post('/api/getSubjectContent', params, GLOBAL_AXIOS_CONFIG)
+  axios.post('/api/getTestFolder', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
         let serverResponse = response.data;
         $(snackbar[0]).snackbar("hide");
@@ -339,6 +377,7 @@ function loadTests(id, snackbar, titleAdd) { //Gets list of tests
 
       }).catch(function (error) {
     console.log(error);
+    $(snackbar[0]).snackbar("hide");
     errorSnackbar();
   });
 }
@@ -372,4 +411,70 @@ function getFormattedDate(unixtime) {
   hour = (hour < 10 ? "0" : "") + hour;
   min = (min < 10 ? "0" : "") + min;
   return day + " " + month + " " + date.getFullYear() + ", " + hour + ":" + min;
+}
+
+
+function getTeacherSchedule(teach) {
+  let options = {
+    content: "Ucitavanje...", // text of the snackbar
+    style: "toast", // add a custom class to your snackbar
+    timeout: 0, // time in milliseconds after the snackbar autohides, 0 is disabled
+    htmlAllowed: true, // allows HTML as content value
+  };
+  let t = $.snackbar(options);
+  let title = document.getElementById("contentModalTitle");
+  let d1 = document.getElementById("contentModal-body");
+
+  const params = new URLSearchParams();
+  var filtered = teach.replace("Profesor: ", "");
+  filtered = filtered.replace("Asistent: ", "");
+
+  params.append('name', filtered);
+
+  axios.post('/api/schedule', params, GLOBAL_AXIOS_CONFIG)
+      .then(function (response) {
+        let serverResponse = response.data;
+        $(t[0]).snackbar("hide");
+        d1.innerHTML = "";
+        title.innerHTML = "";
+        title.innerHTML = serverResponse[0].teacher + " Raspored";
+
+        var header = "<table class=\"table table-borderless\">"
+            + "<thead><tr><th class=\"colum-name\"scope=\"col\">Ime i prezime</th><th class=\"colum-name\"scope=\"col\">Predmeti</th>"
+            + "<th class=\"colum-name\"scope=\"col\">Dan</th><th class=\"colum-name\"scope=\"col\">Od</th><th class=\"colum-name\"scope=\"col\">Do</th>"
+            + "<th class=\"colum-name\"scope=\"col\">Prostorija</th></tr></thead>";
+        for (let i = 0; i < serverResponse.length; i++) {
+          var list = makeListOfSubjects(serverResponse[i].subjects)
+          header += "<tbody>"
+              + "<tr><td><a>" + serverResponse[i].teacher + "</a></td><td><ul>" + list + "</ul></td><td><a>" + serverResponse[i].day + "</a></td>"
+              + "<td><a>" + serverResponse[i].from + "</a></td><td><a>" + serverResponse[i].till + "</a></td><td><a>" + serverResponse[i].room + "</a></td></tr></tbody>";
+        }
+        header += "</table>"
+        d1.insertAdjacentHTML("beforeend", header);
+
+        document.documentElement.style.setProperty('--z-index', "1050");
+        let modal = $('#mainContentModal');
+
+        OPENED_MODALS.push(modal[0].id); //Pushes modal ID onto the stack
+        try {
+          window.JSInterface.modalNumber(OPENED_MODALS.length);
+        } catch (e) {
+          console.log("Android interface not found");
+        }
+
+        modal.modal('show');
+
+      }).catch(function (error) {
+    console.log(error);
+    $(t[0]).snackbar("hide");
+    errorSnackbar();
+  });
+}
+
+function makeListOfSubjects(data) {
+  var toReturn = "";
+  for (let i = 0; i < data.length; i++) {
+    toReturn += "<li>" + data[i] + "</li>";
+  }
+  return toReturn;
 }

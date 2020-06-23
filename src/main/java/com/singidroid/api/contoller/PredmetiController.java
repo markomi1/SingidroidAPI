@@ -9,11 +9,10 @@ import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Controller
@@ -27,19 +26,20 @@ public class PredmetiController{
     }
 
 
-    @RequestMapping(value = "/predmeti", method = RequestMethod.GET)
-    public String index(HttpServletRequest request, Model model, HttpServletResponse response) {
+    @RequestMapping(value = "/predmeti/{id}", method = RequestMethod.GET)
+    public String index(@PathVariable String id, Model model) {
         final long startTime = System.currentTimeMillis();
         Document doc = null;
         List<Object> subjects = null;
         Gson gson = new Gson();
 
-        String actualID = subjectsService.getSubjectActualID(request.getParameter("id")).replace("[", "").replace("]", "");
+        String actualID = subjectsService.getSubjectActualID(id);
 
         String url = "http://predmet.singidunum.ac.rs/course/index.php?categoryid=" + actualID;
 
 
         List<Object> cachedSubjects = subjectsService.checkIfCachedVersionExists(actualID, false);
+        //index
         if (cachedSubjects.get(0).equals("0")) {
             try {
                 //Note this is in a try catch because it can timeout sometimes
@@ -71,7 +71,6 @@ public class PredmetiController{
             model.addAttribute("subjects", subjects);
             final long endTime = System.currentTimeMillis();
             System.out.println("Total execution time of index uncached page: " + (endTime - startTime));
-            return "index";
         } else {
             //Note this is ran when the cached version is not older than a day
             JsonObject obj = gson.fromJson(gson.toJson(cachedSubjects.get(0)), JsonObject.class);
@@ -79,8 +78,8 @@ public class PredmetiController{
             model.addAttribute("subjects", subjects);
             final long endTime = System.currentTimeMillis();
             System.out.println("Total execution time of index cached page: " + (endTime - startTime));
-            return "index";//index
         }
+        return "index";
 
 
     }

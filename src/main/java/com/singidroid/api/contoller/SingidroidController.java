@@ -2,11 +2,11 @@ package com.singidroid.api.contoller;
 
 
 import com.singidroid.api.service.SingidroidService;
-import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+
 
 @RestController
 public class SingidroidController{  //NOTE HTTPS is working now on both the android and the API
@@ -28,7 +29,7 @@ public class SingidroidController{  //NOTE HTTPS is working now on both the andr
         this.restTemplate = restTemplate.build();
     }
 
-
+    //NOTE NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED
     @GetMapping("courses/getSubjects")
     public List<Object> getSubjectsForGivenCourse(@RequestParam(name = "courseId", required = false, defaultValue = "") Integer courseId) throws IOException {
 
@@ -44,20 +45,20 @@ public class SingidroidController{  //NOTE HTTPS is working now on both the andr
 
     @GetMapping("news/getNews") //TODO Change later to POST Mapping not GET Mapping
     public List<Object> getNews(@RequestParam(name = "newsSourceCategories", required = false, defaultValue = "") String newsSourceCategories,
-                                @RequestParam(name = "page", required = false, defaultValue = "0") Integer page) throws URISyntaxException, JSONException, IOException { //This should return NewsJSON for given sources, or given faculty Acronyms
+                                @RequestParam(name = "page", required = false, defaultValue = "0") Integer page) throws URISyntaxException, IOException {                                               //This should return NewsJSON for given sources, or given faculty Acronyms
         List<Object> errorObject = new ArrayList<Object>(); //Error Object
         if (newsSourceCategories.isEmpty()) { //Just normal input "sanitization"
             errorObject.add("ERROR: newsSourceCategories cannot be empty");
             return errorObject;
         } else if (newsSourceCategories.length() > 12) {
-            errorObject.add("ERROR: newsSourceCategories is over 12 char limit boi");
+            errorObject.add("ERROR: newsSourceCategories is over 12 char");
             return errorObject;
         } else if (page >= 50 || page < 0) {
             errorObject.add("ERROR: over 50 pages or under 0, yea that's the limit");
             return errorObject;
         }
 
-        //Hard coded limit of 15 posts per page, maybe i'll add an optional request header to increase the limit
+
         String url = "http://api.singidunum.rs/key:SD03-A1K8-1033-0001-3355/module:posts/method:getCategoryPosts/categories:" + newsSourceCategories + "/page:" + page + "/count:15/";
 
 
@@ -66,67 +67,65 @@ public class SingidroidController{  //NOTE HTTPS is working now on both the andr
 
 
     @GetMapping("news/getSources")
-    @Cacheable("response1") //This doesn't change at all, so i can set it to be cached so i don't hit the DB that often
+    @Cacheable("response1")
     public List<Object> getNewsRepo() { //Returns news sources
-
         return singidroidService.getNewsRepo();
     }
 
 
-    //TODO figure out how tf am i gonna parse the shitty json file and whatnot, maybe consider using DB for this shit
-    //TODO moved to DB, it's same shit or maybe worse than json fml
-    //Figured out the DB thing, now to figure out how to pass arguments etc.
-    //Caching is also disabled from now on, not needed.
-    //I also don't need the repo things as i can use plain old java Object to make JSONs out of.
-    //Don't need repo for jackshit but will leave it as i'm too lazy to clean it up, it works, somehow.
-
-
-
     @GetMapping("/appInit/getYears")
-    @Cacheable("response2") //This doesn't change at all, so i can set it to be cached so i don't hit the DB that often
+    @Cacheable("response2") //This doesn't change at all, so i can set it to be cached so i don't pool the DB that often
     public List<Object> getYears() { //Returns years 1-4
-
         return singidroidService.getYearsForFaculty();
     }
 
 
     @GetMapping("/appInit/getCourse") //Used  to return courses for given faksID and year
-    public List<Object> getCourses(@RequestParam(name = "faks", required = false, defaultValue = "") String faks,
-                                   @RequestParam(name = "year", required = false, defaultValue = "0") Integer year) {
-        int faksLen = faks.length();
-        if (faks.isEmpty() || year == 0) {
-            List<Object> errorObject = new ArrayList<Object>(); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
-            errorObject.add("ERROR: faks or year isn't set, please set and  try again");
+    public List<Object> getCourses(@RequestParam(name = "faculty", required = false, defaultValue = "") String faculty,
+                                   @RequestParam(name = "year", required = false, defaultValue = "1") Integer year) {
+        int facultyLen = faculty.length();
+        List<Object> errorObject = new ArrayList<Object>();
+        if (faculty.isEmpty()) {
+            errorObject.add("ERROR: faculty or year isn't set");//If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
             return errorObject;
         }
+        if (!(facultyLen >= 3 && facultyLen <= 12) && faculty.isEmpty()) { //Check to see if the faculty var is over 3 or less than 12 and isn't empty
+            errorObject.add("ERROR: No Faculty ID lesser than 3 or greater than 12 exists"); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
 
-        if (!(faksLen >= 3 && faksLen <= 12) && faks.isEmpty()) { //Check to see if the faks var is over 3 or less than 12 and isn't empty
-            List<Object> errorObject = new ArrayList<Object>(); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
-            errorObject.add("ERROR: No Faculty ID lesser than 3 or greater than 12 exists");
             return errorObject;
         } else if (!(year >= 1 && year <= 4) && year != 0) {
-            List<Object> errorObject = new ArrayList<Object>();
             errorObject.add("ERROR: Year is only from 1-4");
             return errorObject;
         }
-
-        return singidroidService.getCoursesForGivenYearAndFaculty(faks, year);
+        return singidroidService.getCoursesForGivenYearAndFaculty(faculty, year);
     }
 
-    @GetMapping("/appInit/getFaculties") //Used to fetch Faculty,Year and Course data, returns JSON Object
-    public List<Object> getFaks(@RequestParam(name = "faks", required = false, defaultValue = "") String faks) { //Int 1-4
-        int faksLen = faks.length();
+    @GetMapping("/appInit/getFaculties") //Used to fetch Faculty data, returns JSON Object
+    public List<Object> getFaculties() {
+        return singidroidService.getAllFaculties();
+    }
 
-        //Inverted state
-        if (!(faksLen >= 3 && faksLen <= 12) && !faks.isEmpty()) { //Check to see if the faks var is over 3 or less than 12 and isn't empty
-            List<Object> errorObject = new ArrayList<Object>(); //If it's greater than 3 and isn't empty it'll pass, if not error message below will be shown
-            errorObject.add("ERROR: No Faculty ID lesser than 3 or greater than 12 exists");
+
+    @PostMapping("/api/getStudentBalance")
+    public List<Object> getStudentBalance(@RequestParam(name = "index", required = false, defaultValue = "") String index,
+                                          @RequestParam(name = "jmbg", required = false, defaultValue = "1") String jmbg) throws IOException {
+        List<Object> errorObject = new ArrayList<Object>();
+        if (index.length() != 10) {
+            errorObject.add("ERROR: Index can be only 10 digits long");
             return errorObject;
-        } else {
-            return singidroidService.getAllFaculties();
+        } else if (jmbg.length() != 13) {
+            errorObject.add("ERROR: JMBG can be only 13 digits long");
+            return errorObject;
         }
-
-
+        List<Object> toReturn = singidroidService.getStudentBalance(index, jmbg);
+        if (toReturn.isEmpty()) {
+            toReturn.add("ERROR: Bad index or jmbg submitted");
+        }
+        return toReturn;
     }
 
+    @PostMapping("/api/getExchangeRate")
+    public List<Object> getExchangeRate() throws IOException {
+        return singidroidService.getExchangeRate();
+    }
 }

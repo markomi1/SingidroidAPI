@@ -7,6 +7,16 @@ body {
   background-color: #fff
 }
 
+@media screen and (max-width: 400px) {
+  .table-buttons {
+    font-size: 10px !important;
+  }
+}
+
+.list-group-item {
+  text-decoration: underline black;
+}
+
 #dropdown {
   display: none;
   background: #f7f7f7;
@@ -46,9 +56,30 @@ body {
 
 
 .modal-body {
+  overflow-x: auto;
   padding-left: 0 !important;
   padding-right: 0 !important;
 }
+
+/* Special occasions */
+/* Works on firefox doesn't work on Chrome and WebView is chrome based, so this is kinda useless but i'll keep it */
+#spareModal-body table tr td {
+  width: 0px !important;
+  word-wrap: break-word !important;;
+  vertical-align: middle !important;;
+}
+
+#spareModal-body table tr {
+  width: 0px !important;
+}
+
+#spareModal-body table {
+  width: 0px;
+  border: 0;
+}
+
+/* Special occasions */
+
 
 .start {
   transform: scale(0.1);
@@ -96,7 +127,6 @@ body {
   margin-left: 2.5%;
   border-bottom: 1px #bdbdbd solid;
 }
-
 #spareModal-body {
   text-align: center;
 }

@@ -206,4 +206,22 @@ public class SubjectsPageDataAccess{
         }
         return query;
     }
+
+    public boolean checkIfPostsIdExits(String contentid) {
+        boolean exists = true;
+        String sql = "SELECT sections.obavestenja,sections.rezultati FROM \"sections\" WHERE sections.obavestenja = ? OR sections.rezultati = ?";
+        Object[] arguments = {contentid, contentid};
+        List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
+            String obavestenja = resultSet.getString("obavestenja");
+            String rezultati = resultSet.getString("rezultati");
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("obavestenja", obavestenja);
+            map.put("rezultati", rezultati);
+            return map;
+        });//If it doesn't exist in the DB i'll get an empty array, if it does i wont
+        if (!query.isEmpty()) {
+            exists = false;
+        }
+        return exists;
+    }
 }

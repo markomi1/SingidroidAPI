@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Hello</title>
+    <title>Predmeti</title>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type">
     <meta content="width=device-width, initial-scale=1, shrink-to-fit=yes" name="viewport">
-    <link rel="stylesheet" th:href="@{/css.css}" type="text/css"/>
-    <link rel="stylesheet" th:href="@{/bootstrap-material-design.min.css}">
+    <link rel="stylesheet" th:href="@{/css/css.css}" type="text/css"/>
+    <link rel="stylesheet" th:href="@{/css/bootstrap-material-design.min.css}">
 
-    <link href="css.css" rel="stylesheet">
+    <link href="../static/css/css.css" rel="stylesheet">
     <script th:src="@{/js/jquery-3.5.1.min.js}"></script>
 </head>
 
@@ -21,19 +21,19 @@
 
                 <h4 class="card-title" th:text="${subject.courseName}">Card title</h4>
                 <ul class="card-text">
-                    <li class="list-group-item" th:each="teacher, stats : ${subject.title}" th:text="${teacher}">
-                        Profesor:
+                    <li class="list-group-item" th:each="teacher, stats : ${subject.title}">
+                        <a th:attr="onclick=|getTeacherSchedule('${teacher}')|" th:text="${teacher}"> Profesor:</a>
                     </li>
                 </ul>
             </div>
         </div>
         <div id="dropdown">
             <button class="btn btn-raised btn-primary table-buttons"
-                    th:attr="onclick=|toOpen(${subject.obavestenja},1,'Obavestenja')| , data-linkid=${subject.obavestenja}"
+                    th:attr="onclick=|getPosts(${subject.obavestenja},'Obavestenja')| , data-linkid=${subject.obavestenja}"
                     type="button">Obavestenja
             </button>
             <button class="btn btn-raised btn-primary table-buttons"
-                    th:attr="onclick=|toOpen(${subject.rezultati},1,'Rezultati') | , data-linkid=${subject.rezultati}"
+                    th:attr="onclick=|getPosts(${subject.rezultati},'Rezultati') | , data-linkid=${subject.rezultati}"
                     type="button">Rezultati
             </button>
             <table class="table table-borderless">
@@ -48,13 +48,13 @@
 
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.kol1Pre},2,'Predavanja') | , data-linkid=${subject.kol1Pre}"
+                                th:attr="onclick=|getFolders(${subject.kol1Pre},'Predavanja') | , data-linkid=${subject.kol1Pre}"
                                 type="button">Kolokvijum I
                         </button>
                     </td>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.kol1Vez},2,'Vezbe') | , data-linkid=${subject.kol1Vez}"
+                                th:attr="onclick=|getFolders(${subject.kol1Vez},'Vezbe') | , data-linkid=${subject.kol1Vez}"
                                 type="button">Kolokvijum I
                         </button>
                     </td>
@@ -62,14 +62,14 @@
                 <tr>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.kol2Pre},2,'Predavanja') | , data-linkid=${subject.kol2Pre}"
+                                th:attr="onclick=|getFolders(${subject.kol2Pre},'Predavanja') | , data-linkid=${subject.kol2Pre}"
                                 type="button">Kolokvijum
                             II
                         </button>
                     </td>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.kol2Vez},2,'Vezbe') | , data-linkid=${subject.kol2Vez}"
+                                th:attr="onclick=|getFolders(${subject.kol2Vez},'Vezbe') | , data-linkid=${subject.kol2Vez}"
                                 type="button">Kolokvijum II
                         </button>
                     </td>
@@ -77,13 +77,13 @@
                 <tr>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.ispitPre},2,'Predavanja') | , data-linkid=${subject.ispitPre}"
+                                th:attr="onclick=|getFolders(${subject.ispitPre},'Predavanja') | , data-linkid=${subject.ispitPre}"
                                 type="button">Ispit
                         </button>
                     </td>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.ispitVez},2,'Vezbe') | , data-linkid=${subject.ispitVez}"
+                                th:attr="onclick=|getFolders(${subject.ispitVez},'Vezbe') | , data-linkid=${subject.ispitVez}"
                                 type="button">Ispit
                         </button>
                     </td>
@@ -91,14 +91,14 @@
                 <tr>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.dmPre},2,'Predavanja') | , data-linkid=${subject.dmPre}"
+                                th:attr="onclick=|getFolders(${subject.dmPre},'Predavanja') | , data-linkid=${subject.dmPre}"
                                 type="button">Dodatni
                             Materijali
                         </button>
                     </td>
                     <td>
                         <button class="btn btn-raised btn-primary table-buttons"
-                                th:attr="onclick=|toOpen(${subject.dmVez},2,'Vezbe') | , data-linkid=${subject.dmVez}"
+                                th:attr="onclick=|getFolders(${subject.dmVez},'Vezbe') | , data-linkid=${subject.dmVez}"
                                 type="button">Dodatni Materijali
                         </button>
                     </td>
@@ -113,7 +113,7 @@
 
 <div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" id="mainContentModal" role="dialog"
      tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="contentModalTitle">Modal title</h5>
@@ -131,16 +131,18 @@
     </div>
 </div>
 
+
 <div aria-hidden="true" aria-labelledby="exampleModalCenterTitle" class="modal fade" id="spareModal" role="dialog"
      tabindex="-1">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header customModalTitle">
+
+                <h5 class="modal-title" id="spareModalTitle">Modal title</h5>
+                <h6 class="text-muted" id="spareModalDate">Modal Date</h6>
                 <button aria-label="Close" class="close" data-dismiss="modal" type="button">
                     <span aria-hidden="true">&times;</span>
                 </button>
-                <h5 class="modal-title" id="spareModalTitle">Modal title</h5>
-                <h6 class="text-muted" id="spareModalDate">Modal Date</h6>
             </div>
             <div class='list-line'></div>
             <div id="refs">
