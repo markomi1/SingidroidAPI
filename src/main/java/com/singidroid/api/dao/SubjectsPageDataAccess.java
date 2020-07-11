@@ -29,6 +29,7 @@ public class SubjectsPageDataAccess{
         ArrayList title = getTeachersForGivenSubject(coursename, i); //Teachers
         JsonObject test = getLinkIDsForGivenSubjectID(actualID);
         map.put("courseName", courseName);
+        map.put("subjectID", actualID);
 
         for (int b = 0; b < test.size(); b++) {
             String[] keys = test.keySet().toArray(new String[0]);

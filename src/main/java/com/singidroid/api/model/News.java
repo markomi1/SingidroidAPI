@@ -1,7 +1,10 @@
 package com.singidroid.api.model;
 
 
-public class News {
+import java.util.ArrayList;
+import java.util.List;
+
+public class News{
     private String post_id;
 
     private String post_title;
@@ -22,7 +25,7 @@ public class News {
 
     private String cover_image_path;
 
-    private String post_images;
+    private List<String> post_images = new ArrayList<>();
 
     private String image_added;
 
@@ -76,11 +79,11 @@ public class News {
         this.cover_image_path = cover_image_path;
     }
 
-    public String getPost_images() {
+    public List<String> getPost_images() {
         return this.post_images;
     }
 
-    public void setPost_images(String post_images) {
+    public void setPost_images(List<String> post_images) {
         this.post_images = post_images;
     }
 

@@ -118,6 +118,79 @@ function onLoadAction() {
       buttons[i].classList.add("disabled");
     }
   }
+  let localJson = JSON.parse(localStorage.getItem("unfavorite_list"));
+  let courseID = document.getElementsByClassName("container")[0].getAttribute("data-courseid")
+  if (checkIfKeyExists(courseID, localJson)) {
+    let subjects = document.getElementsByClassName('card')
+    let subjectsToRemove = [];
+
+    let toUnfavorite = keyValues(courseID, localJson)
+    for (let i = 0; i < subjects.length - 1; i++) { //Last elem will always be the "unfavorite section"
+
+      let value = subjects[i].getAttribute('data-subjectid')
+      if (toUnfavorite.filter(element => element.includes(value)) != 0) {
+        subjectsToRemove.push(subjects[i].childNodes[1]);
+      }
+    }
+    for (let b = 0; b < subjectsToRemove.length; b++) {
+      transferToUnfavoriteTest(subjectsToRemove[b])
+    }
+  }
+}
+
+function transferToUnfavoriteTest(data) {
+  let subjectid = data.parentNode.getAttribute("data-subjectid");
+  let unfavorite = document.getElementById("unfavorited-list-container")
+  let favorite = document.getElementById("favorite")
+  let courseID = document.getElementsByClassName("container")[0].getAttribute("data-courseid")
+  //d1.insertAdjacentHTML('beforeend',)
+  if (data.classList.contains("favorite")) {
+    data.classList.remove('favorite');
+    data.classList.add('unfavorite');
+    unfavorite.insertAdjacentHTML('beforeend', data.parentNode.outerHTML)
+    data.parentNode.remove()
+    addToUnFavoriteList(courseID, subjectid)
+  } else {
+    data.classList.remove('unfavorite');
+    data.classList.add('favorite');
+
+    favorite.insertAdjacentHTML('beforeend', data.parentNode.outerHTML)
+    data.parentNode.remove()
+    removeFromUnFavoriteList(courseID, subjectid)
+  }
+}
+
+function addToUnFavoriteList(courseID, subjectID) {
+  if (localStorage.getItem("unfavorite_list") == "" || localStorage.getItem("unfavorite_list") == undefined) {
+    localStorage.setItem("unfavorite_list", "[]");
+  }
+  let json = JSON.parse(localStorage.getItem("unfavorite_list"));
+  if (checkIfKeyExists(courseID, json)) {
+    let pos = findKeyPos(courseID, json);
+    let values = keyValues(courseID, json);
+    if (values.indexOf(subjectID) > -1) {
+      return;
+    }
+    json[pos][courseID].push(subjectID);
+    localStorage.setItem("unfavorite_list", JSON.stringify(json))
+  } else {
+    //if key doesn't exist
+    const id_object = {
+      [courseID]: [subjectID]
+    };
+    json.push(id_object)
+    localStorage.setItem("unfavorite_list", JSON.stringify(json))
+  }
+}
+
+function removeFromUnFavoriteList(courseID, subjectID) {
+  let json = JSON.parse(localStorage.getItem("unfavorite_list"));
+  removeKeyValues(courseID, json, subjectID)
+
+  if (keyValues(courseID, json).length == 0) {
+    removeKey(courseID, json)
+  }
+  localStorage.setItem("unfavorite_list", JSON.stringify(json))
 }
 
 
@@ -383,9 +456,11 @@ function loadTestFolder(id, snackbar, titleAdd) { //Gets list of tests
 }
 
 
-function slider(toGet) {
-
-  let doc = toGet.offsetParent.childNodes[3];
+function slider(toGet, isSection) {
+  let doc = toGet.offsetParent.childNodes[5];
+  if (isSection) {
+    doc = toGet.nextElementSibling;
+  }
 
   if ($(doc).is(":hidden")) {
     $(doc).slideDown("fast", function () {
@@ -395,6 +470,7 @@ function slider(toGet) {
     });
   }
 }
+
 
 
 function getFormattedDate(unixtime) {
@@ -416,8 +492,7 @@ function getFormattedDate(unixtime) {
 
 function getTeacherSchedule(teach) {
   let options = {
-    content: "Ucitavanje...", // text of the snackbar
-    style: "toast", // add a custom class to your snackbar
+    content: "Ucitavanje... <img alt='Loader' src='/images/oval.svg' id='loader-icon' />", // text of the snackbar
     timeout: 0, // time in milliseconds after the snackbar autohides, 0 is disabled
     htmlAllowed: true, // allows HTML as content value
   };
@@ -426,7 +501,7 @@ function getTeacherSchedule(teach) {
   let d1 = document.getElementById("contentModal-body");
 
   const params = new URLSearchParams();
-  var filtered = teach.replace("Profesor: ", "");
+  let filtered = teach.replace("Profesor: ", "");
   filtered = filtered.replace("Asistent: ", "");
 
   params.append('name', filtered);
@@ -439,12 +514,12 @@ function getTeacherSchedule(teach) {
         title.innerHTML = "";
         title.innerHTML = serverResponse[0].teacher + " Raspored";
 
-        var header = "<table class=\"table table-borderless\">"
+        let header = "<table class=\"table table-borderless\">"
             + "<thead><tr><th class=\"colum-name\"scope=\"col\">Ime i prezime</th><th class=\"colum-name\"scope=\"col\">Predmeti</th>"
             + "<th class=\"colum-name\"scope=\"col\">Dan</th><th class=\"colum-name\"scope=\"col\">Od</th><th class=\"colum-name\"scope=\"col\">Do</th>"
             + "<th class=\"colum-name\"scope=\"col\">Prostorija</th></tr></thead>";
         for (let i = 0; i < serverResponse.length; i++) {
-          var list = makeListOfSubjects(serverResponse[i].subjects)
+          const list = makeListOfSubjects(serverResponse[i].subjects);
           header += "<tbody>"
               + "<tr><td><a>" + serverResponse[i].teacher + "</a></td><td><ul>" + list + "</ul></td><td><a>" + serverResponse[i].day + "</a></td>"
               + "<td><a>" + serverResponse[i].from + "</a></td><td><a>" + serverResponse[i].till + "</a></td><td><a>" + serverResponse[i].room + "</a></td></tr></tbody>";
@@ -472,9 +547,11 @@ function getTeacherSchedule(teach) {
 }
 
 function makeListOfSubjects(data) {
-  var toReturn = "";
+  let toReturn = "";
   for (let i = 0; i < data.length; i++) {
     toReturn += "<li>" + data[i] + "</li>";
   }
   return toReturn;
 }
+
+

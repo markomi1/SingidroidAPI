@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -95,7 +96,7 @@ public class SingidroidService {
     }
 
 
-    public String image_extractor(String content) { //Used to extract https://repository.singidunum.ac.rs image links, ignores everything else
+    public List<String> image_extractor(String content) { //Used to extract https://repository.singidunum.ac.rs image links, ignores everything else
         // make it capture repository but ignore img.youtube etc, but in another method make it ignore repository but capture everything else
         final String regex = "<img[^>]+src=\\\"(https:\\/\\/repository[^\">]+)\\\"";
         final Pattern pattern = Pattern.compile(regex, Pattern.MULTILINE);
@@ -108,10 +109,7 @@ public class SingidroidService {
                 matched.add(matcher.group(i));
             }
         }
-        if (matched == null) {
-            return null; //Some post don't have pics at all, so in that case we just return null
-        }
-        return matched.toString(); //
+        return matched; //
     }
 
     public List<Object> getCourseSubjects(Integer courseid) throws IOException {
@@ -138,7 +136,7 @@ public class SingidroidService {
         }
 
         Gson gson = new Gson(); //Google Gson, papa bless
-        String jsonData = new String(response.body().string().getBytes("UTF-8")); //Saving response as string here
+        String jsonData = new String(response.body().string().getBytes(StandardCharsets.UTF_8)); //Saving response as string here
 
 
         CourseSubjects course = gson.fromJson(jsonData, CourseSubjects.class);

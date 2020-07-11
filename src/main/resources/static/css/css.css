@@ -17,6 +17,64 @@ body {
   text-decoration: underline black;
 }
 
+.favorite {
+  background: url(/images/star_favorite.svg) center no-repeat;
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  right: 0%;
+  top: 0;
+  z-index: 10;
+  background-size: 25px 25px;
+}
+
+.hidden {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 2s, opacity 2s linear;
+}
+
+@keyframes example {
+  0% {
+    background-color: red;
+  }
+  25% {
+    background-color: yellow;
+  }
+  50% {
+    background-color: blue;
+  }
+  100% {
+    background-color: green;
+  }
+}
+
+.unfavorite {
+  background: url(/images/star_unfavorite.svg) center no-repeat;
+  width: 50px;
+  height: 50px;
+  position: absolute;
+  right: 0%;
+  top: 0;
+  z-index: 10;
+  background-size: 25px 25px;
+}
+
+.unfavorited-list {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: #fff;
+  background-clip: border-box;
+  border: 1px solid rgba(0, 0, 0, .12);
+  border-radius: .125rem;
+  height: 10px;
+  border: 0;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .14), 0 3px 1px -2px rgba(0, 0, 0, .2), 0 1px 5px 0 rgba(0, 0, 0, .12);
+}
+
 #dropdown {
   display: none;
   background: #f7f7f7;
@@ -29,6 +87,11 @@ body {
 }
 
 .colum-name {
+  text-align: center;
+}
+
+.error-snackbar span {
+  background-color: #AA2F00;
   text-align: center;
 }
 

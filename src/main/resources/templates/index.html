@@ -13,31 +13,32 @@
 </head>
 
 <body onload="onLoadAction()">
-<div class="container">
+<div class="container" th:attr="data-courseid=|${courseid}|">
+    <div id="favorite">
+        <div class="card" th:attr="data-subjectid=${subject.subjectID}" th:each="subject, stats : ${subjects}">
+            <span class="favorite" onclick="transferToUnfavoriteTest(this)"></span>
+            <div class="ripple" onclick="slider(this,false)">
+                <div class="card-body">
 
-    <div class="card" th:each="subject, stats : ${subjects}">
-        <div class="ripple" onclick="slider(this)">
-            <div class="card-body">
-
-                <h4 class="card-title" th:text="${subject.courseName}">Card title</h4>
-                <ul class="card-text">
-                    <li class="list-group-item" th:each="teacher, stats : ${subject.title}">
-                        <a th:attr="onclick=|getTeacherSchedule('${teacher}')|" th:text="${teacher}"> Profesor:</a>
-                    </li>
-                </ul>
+                    <h4 class="card-title" th:text="${subject.courseName}">Card title</h4>
+                    <ul class="card-text">
+                        <li class="list-group-item" th:each="teacher, stats : ${subject.title}">
+                            <a th:attr="onclick=|getTeacherSchedule('${teacher}')|" th:text="${teacher}"> Profesor:</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-        <div id="dropdown">
-            <button class="btn btn-raised btn-primary table-buttons"
-                    th:attr="onclick=|getPosts(${subject.obavestenja},'Obavestenja')| , data-linkid=${subject.obavestenja}"
-                    type="button">Obavestenja
-            </button>
-            <button class="btn btn-raised btn-primary table-buttons"
-                    th:attr="onclick=|getPosts(${subject.rezultati},'Rezultati') | , data-linkid=${subject.rezultati}"
-                    type="button">Rezultati
-            </button>
-            <table class="table table-borderless">
-                <thead>
+            <div id="dropdown">
+                <button class="btn btn-raised btn-primary table-buttons"
+                        th:attr="onclick=|getPosts(${subject.obavestenja},'Obavestenja')| , data-linkid=${subject.obavestenja}"
+                        type="button">Obavestenja
+                </button>
+                <button class="btn btn-raised btn-primary table-buttons"
+                        th:attr="onclick=|getPosts(${subject.rezultati},'Rezultati') | , data-linkid=${subject.rezultati}"
+                        type="button">Rezultati
+                </button>
+                <table class="table table-borderless">
+                    <thead>
                 <tr>
                     <th class="colum-name" scope="col">Predavanja</th>
                     <th class="colum-name" scope="col">Vezbe</th>
@@ -104,10 +105,23 @@
                     </td>
                 </tr>
                 </tbody>
-            </table>
+                </table>
+            </div>
+
         </div>
 
     </div>
+
+
+    <div class="card" onclick="slider(this,true)">
+        <div class="card-body">
+            <h4 class="card-title ">Neomiljeni predmeti</h4>
+        </div>
+    </div>
+    <div id="unfavorited-list-container" style="display:none">
+
+    </div>
+
 </div>
 
 
@@ -170,6 +184,7 @@
 <script th:src="@{/js/popper.js}"></script>
 <script th:src="@{/js/snackbar.min.js}"></script>
 <script th:src="@{/js/bootstrap-material-design.js}"></script>
+<script th:src="@{/js/filter_min.js}"></script>
 <script th:src="@{/js/js.js}"></script>
 <script>
     $(document).ready(function () {
