@@ -16,12 +16,12 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.List;
 
 @Controller
-public class PredmetiController{
+public class SubjectController{ //NOTE Serves the web page using Thymeleaf
 
     private final SubjectsService subjectsService;
 
     @Autowired
-    public PredmetiController(SubjectsService subjectsService) {
+    public SubjectController(SubjectsService subjectsService) {
         this.subjectsService = subjectsService;
     }
 
@@ -29,8 +29,8 @@ public class PredmetiController{
     @RequestMapping(value = "/predmeti/{id}", method = RequestMethod.GET)
     public String index(@PathVariable String id, Model model) {
         final long startTime = System.currentTimeMillis();
-        Document doc = null;
-        List<Object> subjects = null;
+        Document doc;
+        List<Object> subjects;
         Gson gson = new Gson();
         if (id.length() > 3 || id.isEmpty()) {
             return "error";
@@ -42,15 +42,18 @@ public class PredmetiController{
             try {
                 //Note this is in a try catch because it can timeout sometimes
                 doc = Jsoup.connect(url).get();
+
             } catch (Exception e) {
                 //NOTE Fallback to cached version if the doc above timeouts or something, it falls back to the cached version
                 System.out.println("Timeout or error while trying to load the page for ID: " + id);
                 //Note overriding the "if days has passed" check just get the cached version, doesn't matter if it's old, what matters is that i get it
                 //Note i still have to check if i get 0 back, because maybe i don't have that page cached yet, in that case i just return an error page
+
                 cachedSubjects = subjectsService.checkIfCachedVersionExists(id, true);
-                if (cachedSubjects.get(0).equals("0")) {
+                if (cachedSubjects.get(0).equals("0")) { //Only passes this check if it doesn't have the cached version
                     return "error";
                 }
+
                 //Note if there exists a cached version of that page then i add it to the template
                 JsonObject obj = gson.fromJson(gson.toJson(cachedSubjects.get(0)), JsonObject.class);
                 subjects = gson.fromJson(obj.get("cachedCourse").getAsJsonArray(), List.class);

@@ -1,8 +1,10 @@
 package com.singidroid.api.contoller;
 
+
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.singidroid.api.service.SubjectsService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,17 +15,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class PredmetiApiController{
+public class SubjectAPIController{ //NOTE Serves the API for the web page.
+
 
     private final SubjectsService subjectsService;
 
-    public PredmetiApiController(SubjectsService subjectsService) {
+    @Autowired
+    public SubjectAPIController(SubjectsService subjectsService) {
         this.subjectsService = subjectsService;
     }
 
+
     @PostMapping(value = "/api/getSubjectContent")
     public List<Object> getSubjectContent(@RequestParam(name = "contentid", required = false, defaultValue = "") String contentid) throws IOException, ParseException {
-        List<Object> errorObject = new ArrayList<Object>(); //Error Object
+        final long startTime = System.currentTimeMillis();
+        List<Object> errorObject = new ArrayList<>(); //Error Object
         if (contentid.equals("")) {
             errorObject.add("ERROR: contentid is empty");
             return errorObject;
@@ -32,15 +38,27 @@ public class PredmetiApiController{
             errorObject.add("ERROR: invalid contentID");
             return errorObject;
         }
-        ;
         List<Object> toReturn = new ArrayList<>();
-        toReturn.add(subjectsService.getPosts(contentid));
+
+        if (subjectsService.checkIfPostListIsCached(contentid)) {
+
+            toReturn.add(subjectsService.getCachedPostsList(contentid, false).get(0));
+
+        } else {
+            List<Object> freshPosts = subjectsService.getFreshPosts(contentid);
+            toReturn.add(freshPosts);
+            subjectsService.cachePostList(contentid, freshPosts);
+        }
+
+        final long endTime = System.currentTimeMillis();
+        System.out.println("Total execution time of getSubjectContent: " + (endTime - startTime) + " ms");
+
         return toReturn;
     }
 
     @PostMapping(value = "/api/getTestFolder")
-    public List<Object> getTests(@RequestParam(name = "contentid", required = false, defaultValue = "") String contentid) throws IOException {
-        List<Object> errorObject = new ArrayList<Object>(); //Error Object
+    public List<Object> getTests(@RequestParam(name = "contentid", required = false, defaultValue = "") String contentid) {
+        List<Object> errorObject = new ArrayList<>(); //Error Object
         if (contentid.equals("")) {
             errorObject.add("ERROR: contentid is empty");
             return errorObject;
@@ -59,16 +77,19 @@ public class PredmetiApiController{
     @PostMapping(value = "api/getPost")
     public List<Object> getPostsByGivenId(@RequestParam(name = "postId", required = false, defaultValue = "0") Integer postId) throws ParseException {
         final long startTime = System.currentTimeMillis();
-        List<Object> errorObject = new ArrayList<Object>(); //Error Object
+        List<Object> errorObject = new ArrayList<>(); //Error Object
         if (postId == 0 || postId < 0) {
             errorObject.add("ERROR: postId is empty or negative");
             return errorObject;
         }
+
+        //TODO Make it cache the posts for 30-45 mins
         List<Object> post = subjectsService.lookupIfPostWasAlreadyScraped(postId); //If the entry in DB exist then i'll return the full thing, if not i'll return 0
         if (post.get(0).equals("0")) { //If i get back 0 then that ID doesn't exist in DB
             post = subjectsService.fetchAndInsertPost(postId);
 
         }
+
         final long endTime = System.currentTimeMillis();
         System.out.println("Total execution time of getPostsByGivenId: " + (endTime - startTime));
         return post;
@@ -99,5 +120,4 @@ public class PredmetiApiController{
             return subjectsService.getSchedule();
         }
     }
-
 }

@@ -12,13 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 
 @RestController
-public class SingidroidController{  //NOTE HTTPS is working now on both the android and the API
+public class SingidroidController{  //NOTE This Controller serves Uni years/courses/Faculties/StudentBalance and Exchange Rate
 
     private final SingidroidService singidroidService;
     private final RestTemplate restTemplate;
@@ -28,50 +27,6 @@ public class SingidroidController{  //NOTE HTTPS is working now on both the andr
         this.singidroidService = singidroidService;
         this.restTemplate = restTemplate.build();
     }
-
-    //NOTE NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED NOT USED
-    @GetMapping("courses/getSubjects")
-    public List<Object> getSubjectsForGivenCourse(@RequestParam(name = "courseId", required = false, defaultValue = "") Integer courseId) throws IOException {
-
-        List<Object> errorObject = new ArrayList<Object>(); //Error Object
-        if (courseId <= 0 || courseId >= 200) {
-            errorObject.add("ERROR: courseId can't be 0 or greater than 200");
-            return errorObject;
-        }
-
-        return singidroidService.getCourseSubjects(courseId); //Given courseId(example 120) it returns list of given courseId subjects, if not found it returns [ null ]
-    }
-
-
-    @GetMapping("news/getNews") //TODO Change later to POST Mapping not GET Mapping
-    public List<Object> getNews(@RequestParam(name = "newsSourceCategories", required = false, defaultValue = "") String newsSourceCategories,
-                                @RequestParam(name = "page", required = false, defaultValue = "0") Integer page) throws URISyntaxException, IOException {                                               //This should return NewsJSON for given sources, or given faculty Acronyms
-        List<Object> errorObject = new ArrayList<Object>(); //Error Object
-        if (newsSourceCategories.isEmpty()) { //Just normal input "sanitization"
-            errorObject.add("ERROR: newsSourceCategories cannot be empty");
-            return errorObject;
-        } else if (newsSourceCategories.length() > 12) {
-            errorObject.add("ERROR: newsSourceCategories is over 12 char");
-            return errorObject;
-        } else if (page >= 50 || page < 0) {
-            errorObject.add("ERROR: over 50 pages or under 0, yea that's the limit");
-            return errorObject;
-        }
-
-
-        String url = "http://api.singidunum.rs/key:SD03-A1K8-1033-0001-3355/module:posts/method:getCategoryPosts/categories:" + newsSourceCategories + "/page:" + page + "/count:15/";
-
-
-        return singidroidService.getNews(url); //All the ugly stuff happens in that method call
-    }
-
-
-    @GetMapping("news/getSources")
-    @Cacheable("response1")
-    public List<Object> getNewsRepo() { //Returns news sources
-        return singidroidService.getNewsRepo();
-    }
-
 
     @GetMapping("/appInit/getYears")
     @Cacheable("response2") //This doesn't change at all, so i can set it to be cached so i don't pool the DB that often

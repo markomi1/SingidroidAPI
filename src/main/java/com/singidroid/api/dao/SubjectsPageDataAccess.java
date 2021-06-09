@@ -124,12 +124,12 @@ public class SubjectsPageDataAccess{
     //Looks if the post with given post ID is already cached in the DB, if not it returns a List<Object> with 0 inside
     public List<Object> lookupIfPostExistsInDB(Integer postId) {
         String sql = "SELECT " +
-                "subject_posts.post_title," +
-                "subject_posts.post_teacher," +
-                "subject_posts.post_datetime," +
-                "subject_posts.post_content," +
-                "subject_posts.\"attachmentLink\"" +
-                " FROM \"subject_posts\" WHERE subject_posts.post_id = ?";
+                "subject_post.post_title," +
+                "subject_post.post_teacher," +
+                "subject_post.post_datetime," +
+                "subject_post.post_content," +
+                "subject_post.\"attachmentLink\"" +
+                " FROM \"subject_post\" WHERE subject_post.post_id = ?";
         Object[] arguments = {postId};
         List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
             String post_title = resultSet.getString("post_title");
@@ -156,7 +156,7 @@ public class SubjectsPageDataAccess{
 
     //Inserts post with all of the content below into the DB.
     public void insertPostsIntoDb(Integer postid, String title, String teacher, long datetime, String content, String attachmentLink) {
-        String sql = "INSERT INTO \"public\".\"subject_posts\"(\"post_id\",\"post_title\" ,\"post_teacher\", \"post_datetime\", \"post_content\",\"attachmentLink\") VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO \"public\".\"subject_post\"(\"post_id\",\"post_title\" ,\"post_teacher\", \"post_datetime\", \"post_content\",\"attachmentLink\") VALUES (?, ?, ?, ?, ?, ?)";
         Object[] args = {postid, teacher, datetime, content, attachmentLink};
         jdbcTemplate.update(sql, postid, title, teacher, datetime, content, attachmentLink);
     }
@@ -224,5 +224,49 @@ public class SubjectsPageDataAccess{
             exists = false;
         }
         return exists;
+    }
+
+    public List<Object> getCachedPostsListIfItExists(String postListID) {
+        String sql = "SELECT subject_posts.\"subject_posts_id\"," +
+                "subject_posts.\"posts_list\"," +
+                "subject_posts.\"cache_timestamp\"" +
+                " FROM \"subject_posts\"" +
+                " WHERE subject_posts.\"subject_posts_id\" = ?";
+        Object[] arguments = {Integer.valueOf(postListID)};
+        List<Object> query = jdbcTemplate.query(sql, arguments, (resultSet, i) -> {
+
+            String subject_posts_id = resultSet.getString("subject_posts_id");
+            String posts_list = resultSet.getString("posts_list");
+            int cache_timestamp = resultSet.getInt("cache_timestamp");
+            Map<String, Object> map = new LinkedHashMap<>();
+            Gson gson = new Gson();
+            List<Object> posts_listToArray = gson.fromJson(posts_list, List.class); //Turning String Json into Json that's then saved into List<Object>
+
+            map.put("subject_posts_id", subject_posts_id); //Put courseID in Map
+            map.put("posts_list", posts_listToArray);//Put parsed cachedCourse into the Map
+            map.put("cache_timestamp", cache_timestamp);//Put datetime in UNIX format in Map
+
+            return map;
+        });
+        if (query.isEmpty()) {
+            query.add(0, "0");
+        }
+        return query;
+    }
+
+
+    public void cachePostsList(String postListID, List<Object> postList) {
+        Gson gson = new Gson(); //Using GSON to turn the List<Object> into a JSON
+        String sql = "INSERT INTO \"public\".\"subject_posts\"(\"subject_posts_id\",\"posts_list\",\"cache_timestamp\") VALUES (?,?,?)";
+        Object[] args = {Integer.valueOf(postListID), postList, System.currentTimeMillis()};
+        int time = Math.round(System.currentTimeMillis() / 1000); //UTC UNIX TIME
+        jdbcTemplate.update(sql, Integer.valueOf(postListID), gson.toJson(postList), time);
+    }
+
+    public void updateCachePostsList(String postListID, List<Object> postList) {
+        Gson gson = new Gson(); //Using GSON to turn the List<Object> into a JSON
+        String sql = "UPDATE \"public\".\"subject_posts\" SET \"posts_list\" = ?, \"cache_timestamp\" = ? WHERE \"subject_posts_id\" = ?";
+        int time = Math.round(System.currentTimeMillis() / 1000); //UTC UNIX TIME
+        jdbcTemplate.update(sql, gson.toJson(postList), time, Integer.valueOf(postListID));
     }
 }

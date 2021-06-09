@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
+
 public class CourseSubjects{
 
     @SerializedName("children")
@@ -18,9 +19,7 @@ public class CourseSubjects{
     public CourseSubjects() {
     }
 
-    /**
-     * @param children
-     */
+
     public CourseSubjects(List<Child> children) {
         super();
         this.children = children;
@@ -60,11 +59,7 @@ class Child{
     public Child() {
     }
 
-    /**
-     * @param name
-     * @param type
-     * @param key
-     */
+
     public Child(String name, Integer type, String key) {
         super();
         this.name = name;

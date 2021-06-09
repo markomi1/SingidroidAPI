@@ -25,6 +25,7 @@ public class SubjectsService{
 
     private final SubjectsPageDataAccess subjectsPageDataAccess;
     private final int SUBJECT_CACHE_TIME = 86400; //Unix secons, day is 86400
+    private final int POSTS_LIST_CACHE_TIME = 2700; //Unix secons, 45 min is 2700
     @Autowired
     public SubjectsService(SubjectsPageDataAccess subjectsPageDataAccess) {
         this.subjectsPageDataAccess = subjectsPageDataAccess;
@@ -44,10 +45,17 @@ public class SubjectsService{
         return subjects;
     }
 
-    public List<Object> getPosts(String id) throws ParseException, IOException {
+    public List<Object> getFreshPosts(String id) throws ParseException, IOException {
         List<Object> toReturn = new ArrayList<>();
         String blogUrl = "http://predmet.singidunum.ac.rs/mod/forum/view.php?id=" + id;
-        Document doc = Jsoup.connect(blogUrl).header("Accept-Language", "en-US,en;q=0.5").get();
+        Document doc = null;
+        try {
+            doc = Jsoup.connect(blogUrl).header("Accept-Language", "en-US,en;q=0.5").get();
+        } catch (Exception e) {
+            toReturn.add(getCachedPostsList(id, true).get(0));
+            return toReturn;
+        }
+
         Elements toExtract = doc.getElementsByClass("discussion");
         int toExtactLenth = toExtract.size();
         for (int i = 0; i < toExtactLenth; i++) {
@@ -217,6 +225,7 @@ public class SubjectsService{
         }
     }
 
+    //For subjects
     public List<Object> checkIfCachedVersionExists(String actualID, boolean OverrideDayCheck) {
         Gson gson = new Gson();
         List<Object> toReturn = new ArrayList<>();
@@ -282,4 +291,66 @@ public class SubjectsService{
         return toReturn;
     }
 
+
+    //Checks if the given postList ID is cached in the DB or not, checks it by comparing the cache_timestamp.
+    public Boolean checkIfPostListIsCached(String postListID) {
+        List<Object> cachedPosts = subjectsPageDataAccess.getCachedPostsListIfItExists(postListID);
+        Gson gson = new Gson();
+        //If there's no cached version we return 0, indicating no cache
+        if (cachedPosts.get(0).equals("0")) {
+            System.out.println("Posts List isn't cached for ID: " + postListID);
+            return false;
+        } else {
+            //If there is a cached version, we first check to see if the cache_timestamp is valid, if yes, then return True, else False
+            String toJson = gson.toJson(cachedPosts.get(0));
+            JsonObject jsonQuery = gson.fromJson(toJson, JsonObject.class);
+            int currentTime = Math.round(System.currentTimeMillis() / 1000);
+            int cacheTime = jsonQuery.get("cache_timestamp").getAsInt();
+            int passedTime = currentTime - cacheTime;
+            return passedTime <= POSTS_LIST_CACHE_TIME;
+        }
+    }
+
+    public void cachePostList(String postListID, List<Object> postList) {
+        List<Object> cachedPosts = subjectsPageDataAccess.getCachedPostsListIfItExists(postListID);
+        if (postList.get(0).equals("0")) {
+            return;
+        }
+
+        //If it's 0 that means there's no cache of that list, if not then it means it's cached but out of date(timestamp).
+        if (cachedPosts.get(0).equals("0")) {
+            subjectsPageDataAccess.cachePostsList(postListID, postList);
+            System.out.println("Cached posts list with ID: " + postListID);
+
+        } else {
+            subjectsPageDataAccess.updateCachePostsList(postListID, postList);
+        }
+    }
+
+
+    public List<Object> getCachedPostsList(String postsListID, Boolean OverrideDayCheck) {
+        List<Object> PostsList = subjectsPageDataAccess.getCachedPostsListIfItExists(postsListID);
+        List<Object> toReturn = new ArrayList<>();
+        Gson gson = new Gson();
+
+
+        if (PostsList.get(0).equals("0")) {
+            System.out.println("No posts list with that ID: " + postsListID);
+            toReturn.add("0");
+            return toReturn;
+        } else {
+            String toJson = gson.toJson(PostsList.get(0));
+            JsonObject jsonQuery = gson.fromJson(toJson, JsonObject.class);
+            int currentTime = Math.round(System.currentTimeMillis() / 1000);
+            int cacheTime = jsonQuery.get("cache_timestamp").getAsInt();
+            int passedTime = currentTime - cacheTime;
+            if (passedTime > POSTS_LIST_CACHE_TIME && !OverrideDayCheck) {
+                System.out.println("A day has passed, updating course with ID: " + postsListID);
+                toReturn.add("0");
+                return toReturn;
+            }
+            toReturn.add(gson.fromJson(jsonQuery.get("posts_list").toString(), Object.class));
+            return toReturn;
+        }
+    }
 }
