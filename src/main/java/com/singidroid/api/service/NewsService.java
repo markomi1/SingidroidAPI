@@ -77,9 +77,9 @@ public class NewsService{
         final Matcher matcher = pattern.matcher(content);
         List<String> matched = new ArrayList<>();
         while (matcher.find()) {
-            //System.out.println("Full match: " + matcher.group(0));
+
             for (int i = 1; i <= matcher.groupCount(); i++) {
-                //System.out.println("Group " + i + ": " + matcher.group(i));
+
                 matched.add(matcher.group(i));
             }
         }

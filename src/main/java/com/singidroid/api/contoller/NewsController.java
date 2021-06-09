@@ -37,9 +37,7 @@ public class NewsController{
             return errorObject;
         }
 
-
         String url = "http://api.singidunum.rs/key:SD03-A1K8-1033-0001-3355/module:posts/method:getCategoryPosts/categories:" + newsSourceCategories + "/page:" + page + "/count:15/";
-
 
         return newsService.getNews(url); //All the ugly stuff happens in that method call
     }
