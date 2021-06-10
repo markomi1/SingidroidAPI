@@ -105,6 +105,7 @@ public class SubjectAPIController{ //NOTE Serves the API for the web page.
             Gson gson = new Gson();
             String temp = gson.toJson(toFilter); //Turn the list into JSON as List<Object> can be filtered but it's complicated
             JsonArray arr = gson.fromJson(temp, JsonArray.class); //Turn it into JsonArray
+
             for (int i = 0; i < arr.size(); i++) { //Loop over it till we find the name that was given
                 String arrName = arr.get(i).getAsJsonObject().get("teacher").getAsString();
                 if (arrName.equals(name)) { //This is so so so bad, but it works and it's 5AM so i can't be bothered to improve it for now

@@ -313,6 +313,9 @@ public class SubjectsService{
 
     public void cachePostList(String postListID, List<Object> postList) {
         List<Object> cachedPosts = subjectsPageDataAccess.getCachedPostsListIfItExists(postListID);
+        if (postList.isEmpty()) {
+            return;
+        }
         if (postList.get(0).equals("0")) {
             return;
         }
