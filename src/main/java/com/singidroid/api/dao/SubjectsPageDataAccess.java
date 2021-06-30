@@ -27,13 +27,14 @@ public class SubjectsPageDataAccess{
         String courseName = coursename.get(i).getElementsByClass("coursename").text();
         String actualID = getSubjectActualIDFromDataBase(coursename.get(i).attr("data-courseid")).replace("[", "").replace("]", "");
         ArrayList title = getTeachersForGivenSubject(coursename, i); //Teachers
-        JsonObject test = getLinkIDsForGivenSubjectID(actualID);
+        JsonObject subjectData = getLinkIDsForGivenSubjectID(actualID);
         map.put("courseName", courseName);
         map.put("subjectID", actualID);
 
-        for (int b = 0; b < test.size(); b++) {
-            String[] keys = test.keySet().toArray(new String[0]);
-            map.put(keys[b], test.get(keys[b]).getAsString());
+        for (int b = 0; b < subjectData.size(); b++) {
+            String[] keys = subjectData.keySet().toArray(new String[0]);
+            map.put(keys[b], subjectData.get(keys[b]).getAsString());
+
         }
 
 
@@ -85,10 +86,24 @@ public class SubjectsPageDataAccess{
             return map;
         });
         Gson gson = new Gson();
-        JsonObject jsonQuery = gson.fromJson(query.get(0).toString(), JsonObject.class);
-        if (jsonQuery.isJsonNull()) {
-            jsonQuery.addProperty(String.valueOf(0), 0);
+        JsonObject jsonQuery = new JsonObject();
+        if (query.isEmpty()) {
+            System.out.println("No subject with ID: " + subjectId);
+            jsonQuery.addProperty("obavestenja", "0");
+            jsonQuery.addProperty("rezultati", "0");
+            jsonQuery.addProperty("kol1Pre", "0");
+            jsonQuery.addProperty("kol2Pre", "0");
+            jsonQuery.addProperty("ispitPre", "0");
+            jsonQuery.addProperty("dmPre", "0");
+            jsonQuery.addProperty("kol1Vez", "0");
+            jsonQuery.addProperty("kol2Vez", "0");
+            jsonQuery.addProperty("ispitVez", "0");
+            jsonQuery.addProperty("dmVez", "0");
+        } else {
+            jsonQuery = gson.fromJson(query.get(0).toString(), JsonObject.class);
         }
+
+
         return jsonQuery;
     }
 
