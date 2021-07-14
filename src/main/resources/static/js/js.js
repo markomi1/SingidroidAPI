@@ -119,7 +119,11 @@ function onLoadAction() {
     }
   }
   let localJson = JSON.parse(localStorage.getItem("unfavorite_list"));
+  //example [{"120":["815","817","818"]}] 120 - Course ID, 815/817 - Subject IDs.
   let courseID = document.getElementsByClassName("container")[0].getAttribute("data-courseid")
+  if (localJson == null) {
+    localStorage.setItem("unfavorite_list", "[]");
+  }
   if (checkIfKeyExists(courseID, localJson)) {
     let subjects = document.getElementsByClassName('card')
     let subjectsToRemove = [];
@@ -270,20 +274,15 @@ function errorSnackbar() {
 
 
 function loadPosts(id, snackbar, titleAdd) {
-
   document.getElementById("contentModalTitle").innerHTML = titleAdd;
-
   let d1 = document.getElementById("contentModal-body");
-
   const params = new URLSearchParams();
   params.append('contentid', id);
   axios.post('/api/getSubjectContent', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
         let serverResponse = response.data;
         $(snackbar[0]).snackbar("hide");
-
         d1.innerHTML = "";
-
         let toInsert = "<div class='list-group'>";
         for (let i = 0; i < serverResponse[0].length; i++) {
           toInsert += "<a onclick='getPost(" + serverResponse[0][i].postlinkid + ")' class='list-group-item list-group-item-action flex-column align-items-start'><div class='d-flex w-100 justify-content-between'>" +
@@ -293,7 +292,6 @@ function loadPosts(id, snackbar, titleAdd) {
         d1.insertAdjacentHTML('beforeend', toInsert);
         document.documentElement.style.setProperty('--z-index', "1050");
         let modal = $('#mainContentModal');
-
         OPENED_MODALS.push(modal[0].id); //Pushes modal ID onto the stack
         try {
           window.JSInterface.modalNumber(OPENED_MODALS.length);
@@ -358,8 +356,7 @@ $('#spareModal').on('hidden.bs.modal', function () { //Used to make background g
 
 function getPost(postid) {
   let options = {
-    content: "Ucitavanje...", // text of the snackbar
-    style: "toast", // add a custom class to your snackbar
+    content: "Ucitavanje...  <img alt='Loader' src='/images/oval.svg' id='loader-icon' />  ", // text of the snackbar
     timeout: 0, // time in milliseconds after the snackbar autohides, 0 is disabled
     htmlAllowed: true, // allows HTML as content value
   };
@@ -370,13 +367,11 @@ function getPost(postid) {
   axios.post('/api/getPost', params, GLOBAL_AXIOS_CONFIG)
       .then(function (response) {
         let serverResponse = response.data;
-
         $(t[0]).snackbar("hide");
 
         d1.innerHTML = "";
         document.getElementById("spareModalTitle").innerHTML = serverResponse[0].title;
         document.getElementById("spareModalDate").innerHTML = serverResponse[0].teacher + " " + getFormattedDate(serverResponse[0].datetime / 1000);
-
 
         d1.insertAdjacentHTML('beforeend', serverResponse[0].content);
 
@@ -386,7 +381,10 @@ function getPost(postid) {
         if (serverResponse[0].attachments !== undefined) {
           addAttachments(serverResponse[0].attachments);
         }
-
+        $("#openInBrowser").on("click", function () {
+          console.log("Clicked to open in browser!")
+          location.href = "http://predmet.singidunum.ac.rs/mod/forum/discuss.php?d=" + postid;
+        })
         document.documentElement.style.setProperty('--z-index', "10");
         let modal = $('#spareModal');
         OPENED_MODALS.push(modal[0].id);
@@ -420,6 +418,23 @@ function addAttachments(AttArray) {
 }
 
 
+function setDownloadLink(files) {
+
+  for (let i = 0; i < files.length; i++) {
+    if (files[i].getElementsByTagName("a").length !== 0) {
+      files[i].onclick = function () {
+        let fileName = files[i].getElementsByTagName("span")[1].innerText;
+        let fileUrl = files[i].getElementsByTagName("a")[0].getAttribute("href")
+        try {
+          window.JSInterface.downloadFile(fileName, fileUrl);
+        } catch (e) {
+          console.log("Android interface not found");
+        }
+      }
+    }
+  }
+}
+
 function loadTestFolder(id, snackbar, titleAdd) { //Gets list of tests
 
   let title = document.getElementById("contentModalTitle");
@@ -448,6 +463,8 @@ function loadTestFolder(id, snackbar, titleAdd) { //Gets list of tests
 
         modal.modal('show');
 
+        let files = document.getElementsByClassName("fp-filename-icon")
+        //setDownloadLink(files);
       }).catch(function (error) {
     console.log(error);
     $(snackbar[0]).snackbar("hide");

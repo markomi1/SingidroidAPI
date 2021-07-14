@@ -87,7 +87,6 @@ public class SubjectAPIController{ //NOTE Serves the API for the web page.
         List<Object> post = subjectsService.lookupIfPostWasAlreadyScraped(postId); //If the entry in DB exist then i'll return the full thing, if not i'll return 0
         if (post.get(0).equals("0")) { //If i get back 0 then that ID doesn't exist in DB
             post = subjectsService.fetchAndInsertPost(postId);
-
         }
 
         final long endTime = System.currentTimeMillis();

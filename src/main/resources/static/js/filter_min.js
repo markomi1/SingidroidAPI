@@ -85,9 +85,8 @@ function keyValues(KeyName, arr) {
 }
 
 function findKeys(arr) {
-    //var arr = JSON.parse(localStorage.getItem(StorageKey)) //Takes localStorage arr as input!
-    if (arr == null) {
-        return;
+    if (arr == null || arr.length === 0) {
+        return 0;
     }
     var arrLenght = arr.length - 1; //Real lenght of the array is -1
     var keyArr = [] //Stores keys

@@ -4,6 +4,7 @@
 <head>
     <title>Predmeti</title>
     <meta content="text/html; charset=UTF-8" http-equiv="content-type">
+    <meta content="upgrade-insecure-requests" http-equiv="Content-Security-Policy">
     <meta content="width=device-width, initial-scale=1, shrink-to-fit=yes" name="viewport">
     <link rel="stylesheet" th:href="@{/css/css.css}" type="text/css"/>
     <link rel="stylesheet" th:href="@{/css/bootstrap-material-design.min.css}">
@@ -170,6 +171,7 @@
 
             </div>
             <div class="modal-footer">
+                <button class="btn btn-secondary" id="openInBrowser" type="button">Otvori u veb pretraživaču</button>
                 <button class="btn btn-secondary" data-dismiss="modal" type="button">Zatvori</button>
             </div>
         </div>
